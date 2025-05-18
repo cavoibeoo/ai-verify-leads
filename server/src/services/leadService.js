@@ -169,7 +169,7 @@ export const publishLead = async (
             );
 
             console.log("✅ Flow has been completed. Lead stop published.");
-            return;
+            return { message: "Flow has been completed. Lead stop published." };
         }
 
         const targetNode = routing.target.split("_")[0];
@@ -200,13 +200,32 @@ export const publishLead = async (
     }
 };
 
-export const publishByApi = async (userId, leadId, result, isRetry) => {
+export const publishByApi = async (userId, leadIds, result, isRetry) => {
     try {
-        let lead = await Lead.findOne({ _id: getObjectId(leadId), userId: getObjectId(userId) });
-        if (!lead) {
-            throw new ApiError(StatusCodes.NOT_FOUND, "Lead not found.");
+        // Check if all leadIds are provided
+        if (!leadIds || !Array.isArray(leadIds) || leadIds.length === 0) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, "Lead IDs are required.");
         }
-        return await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], result, isRetry);
+
+        // Check if all leads exist and belong to the user
+        const leads = await Lead.find({
+            _id: { $in: leadIds.map((id) => getObjectId(id)) },
+            userId: getObjectId(userId),
+        });
+
+        // Verify all provided leadIds exist
+        if (leads.length !== leadIds.length) {
+            throw new ApiError(StatusCodes.NOT_FOUND, "One or more leads not found.");
+        }
+
+        return (result = await publishLead(
+            userId,
+            leads[0].flowId,
+            leads[0].flowId.nodeId,
+            leads,
+            result,
+            isRetry
+        ));
     } catch (error) {
         throw error;
     }

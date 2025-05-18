@@ -48,9 +48,9 @@ export const retryLead = async (req, res, next) => {
 
 export const publishLead = async (req, res, next) => {
     try {
-        const { userId, leadId, result, isRetry } = req.body;
+        const { userId, leadIds, result, isRetry } = req.body;
 
-        const finalResult = await services.publishByApi(userId, leadId, result, isRetry);
+        const finalResult = await services.publishByApi(userId, leadIds, result, isRetry);
         res.status(StatusCodes.OK).json(finalResult);
     } catch (err) {
         next(err);
