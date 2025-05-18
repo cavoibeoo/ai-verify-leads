@@ -41,12 +41,23 @@ def get_sheet_lead(self):
             socket.setdefaulttimeout(30)  # 30 seconds timeout
 
             leads = process_sheet(extract_sheet_id(sheet.get("sheetUrl", "")), service)
-            add_leads(leads, sheet["userId"], sheet["flowId"], sheet["nodeId"])
+            ids = add_leads(leads, sheet["userId"], sheet["flowId"], sheet["nodeId"])
+            # Convert ObjectId to string to make it JSON serializable
+            id_strings = [str(obj_id) for obj_id in ids]
+            response = requests.post("http://127.0.0.1:3001/api/lead/publish", json={
+                "userId": str(sheet['userId']),
+                "leadIds": id_strings,
+                "result": None,
+                "isRetry": False,
+            })
+            response_data = response.json()
+            print(f"Publish lead to next node... {response_data}")
+
             refresh_tokens_if_needed(credentials, tokens, sheet, sheet["connection"])
 
         return {'status': True, 'data': "response.text"}
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to send webhook: {str(e)}")
+    except Exception as e:
+        logger.error(f"Failed when get lead from sheet: {str(e)}")
         if self.request.retries < self.max_retries:
             countdown = 5  # Retry after 5 seconds
             raise self.retry(exc=e, countdown=countdown)
@@ -70,14 +81,13 @@ def process_sheet(sheet_id, service):
 
     if new_leads:
         formatted_leads = []
-        for lead in new_leads:
+        new_leads[0] = normalize_lead(new_leads[0])
+        for lead in new_leads[1:]:
             formatted_lead = {}
             for label, value in zip(new_leads[0], lead):
                 formatted_lead[label] = value
 
-            formatted_leads.append(normalize_lead(formatted_lead))
-        for lead in formatted_leads:
-            print(f"Processing lead: {lead}")
+            formatted_leads.append(formatted_lead)
         return formatted_leads
 
 
@@ -139,4 +149,4 @@ def add_leads(leads, userId, flowId, nodeId):
             "updatedAt": datetime.datetime.now()
         }
         leadObjects.append(leadObject)
-    add_many_leads(leadObjects)
+    return add_many_leads(leadObjects)
