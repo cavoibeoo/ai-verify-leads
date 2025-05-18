@@ -238,13 +238,13 @@ const categorizeNodes = (nodes: NodeType[]): NodeCategory[] => {
 			nodeKey.includes("facebook") ||
 			nodeKey.includes("googleSheets") ||
 			nodeKey.includes("Sheets") ||
-			nodeKey.includes("sheet") ||
-			nodeKey.includes("excel")
+			nodeKey.includes("getSheetLead")
 		) {
 			dataSourcesCategory.push(nodeItem);
 		} else if (
 			nodeKey.includes("Call") ||
 			nodeKey.includes("Verify") ||
+			nodeKey.includes("exportSheetLead") ||
 			nodeKey.includes("Webhook") ||
 			nodeKey.includes("sendWebhook") ||
 			nodeKey.includes("condition") ||
@@ -295,17 +295,12 @@ const fallbackNodeCategories: NodeCategory[] = [
 				color: getNodeColor("googleSheets"),
 			},
 			{
-				type: "sheet",
+				type: "getSheetLead",
 				label: "Sheet Import",
-				icon: getNodeIcon("sheet"),
-				color: getNodeColor("sheet"),
+				icon: getNodeIcon("getSheetLead"),
+				color: getNodeColor("getSheetLead"),
 			},
-			{
-				type: "excel",
-				label: "Excel Import",
-				icon: getNodeIcon("excel"),
-				color: getNodeColor("excel"),
-			},
+
 			{
 				type: "facebookLeadAds",
 				label: "Facebook Lead Ads",
@@ -328,6 +323,12 @@ const fallbackNodeCategories: NodeCategory[] = [
 				label: "Google Calendar",
 				icon: getNodeIcon("googleCalendar"),
 				color: getNodeColor("googleCalendar"),
+			},
+			{
+				type: "exportSheetLead",
+				label: "Sheet Export",
+				icon: getNodeIcon("exportSheetLead"),
+				color: getNodeColor("exportSheetLead"),
 			},
 			{
 				type: "sendWebhook",

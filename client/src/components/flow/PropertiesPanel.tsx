@@ -1190,84 +1190,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 		const nodeType = selectedNode.type || "default";
 
 		switch (nodeType) {
-			case "googleSheets":
-				return (
-					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Spreadsheet ID"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.spreadsheetId || ""}
-							onChange={handleTextChange("spreadsheetId")}
-							placeholder="Enter spreadsheet ID"
-						/>
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet Name"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetName || ""}
-							onChange={handleTextChange("sheetName")}
-							placeholder="Enter sheet name"
-						/>
-					</>
-				);
-
-			case "sheet":
-				return (
-					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet url"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetUrl || ""}
-							onChange={(e) => {
-								updateSettings("sheetUrl", e.target.value);
-							}}
-							placeholder="Enter sheet url"
-							required
-							helperText="The URL where lead data stored"
-						/>
-					</>
-				);
-
-			case "excel":
-				return (
-					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Excel url"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.excelUrl || ""}
-							onChange={(e) => {
-								updateSettings("excelUrl", e.target.value);
-							}}
-							placeholder="Enter excel url"
-							required
-							helperText="The URL where lead data stored"
-						/>
-					</>
-				);
-
 			case "facebookLeadAds":
 				return (
 					<>
@@ -1751,14 +1673,41 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 					</>
 				);
 
+			case "getSheetLead":
+				return (
+					<>
+						{" "}
+						<CalendarConnectionSelect
+							value={localSettings.connection || ""}
+							onChange={(value) => updateSettings("connection", value)}
+						/>{" "}
+						<TextField
+							fullWidth
+							size="small"
+							label="Sheet URL"
+							variant="outlined"
+							margin="normal"
+							multiline
+							minRows={1}
+							maxRows={10}
+							value={localSettings.sheetUrl || ""}
+							onChange={handleTextChange("sheetUrl")}
+							placeholder="Enter Google Sheet URL"
+							required
+							helperText="The URL of the Google Sheet to import data from"
+						/>{" "}
+					</>
+				);
 			case "preVerify":
 				return (
 					<>
+						{" "}
 						<Typography variant="subtitle2" gutterBottom>
-							Configure Pre-verification Criteria
-						</Typography>
-
+							{" "}
+							Configure Pre-verification Criteria{" "}
+						</Typography>{" "}
 						<Box sx={{ mt: 2, mb: 3 }}>
+							{" "}
 							<FormControlLabel
 								control={
 									<Checkbox
@@ -1770,7 +1719,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									/>
 								}
 								label="Enable Web Scraping Verification"
-							/>
+							/>{" "}
 							{localSettings.enableWebScraping && (
 								<TextField
 									fullWidth
@@ -1786,13 +1735,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									placeholder="Enter prompt for web scraping verification"
 									helperText="This prompt will be used to give criteras for the web scraping verification process"
 								/>
-							)}
+							)}{" "}
 						</Box>
-
 						<Divider sx={{ my: 2 }}>
 							<Chip label="Field Criteria" />
 						</Divider>
-
 						{/* Danh sách các tiêu chí */}
 						{(
 							localSettings.criteria || [
@@ -1962,7 +1909,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								)}
 							</Box>
 						))}
-
 						{/* Nút thêm tiêu chí */}
 						<Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
 							<Button
@@ -1985,7 +1931,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								Add Criteria
 							</Button>
 						</Box>
-
 						<Box
 							sx={{
 								mt: 2,

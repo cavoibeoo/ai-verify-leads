@@ -47,7 +47,6 @@ import PropertiesPanel from "./PropertiesPanel";
 import CustomEdge from "./edges/CustomEdge";
 import FlowToolbar from "./FlowToolbar";
 import {
-	GoogleSheetsNode,
 	AICallNode,
 	CalendarNode,
 	WebhookNode,
@@ -58,8 +57,8 @@ import {
 	ErrorNode,
 	FacebookLeadAdsNode,
 	DeadLeadNode,
-	SheetNode,
-	ExcelNode,
+	SheetImportNode,
+	SheetExportNode,
 } from "./nodes/NodeTypes";
 import { CustomEdgeData } from "./edges/CustomEdge";
 import {
@@ -131,9 +130,8 @@ const getDarkTheme = () =>
 
 // Define node types
 const nodeTypes = {
-	googleSheets: GoogleSheetsNode,
-	sheet: SheetNode,
-	excel: ExcelNode,
+	getSheetLead: SheetImportNode,
+	exportSheetLead: SheetExportNode,
 	facebookLeadAds: FacebookLeadAdsNode,
 	aiCall: AICallNode,
 	googleCalendar: CalendarNode,
@@ -290,10 +288,10 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		switch (type) {
 			case "googleSheets":
 				return "Google Sheets";
-			case "sheet":
+			case "getSheetLead":
 				return "Sheet Import";
-			case "excel":
-				return "Excel Import";
+			case "exportSheetLead":
+				return "Sheet Export";
 			case "facebookLeadAds":
 				return "Facebook Lead Ads";
 			case "aiCall":
@@ -327,10 +325,10 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		switch (type) {
 			case "googleSheets":
 				return "Import leads from Google Sheets";
-			case "sheet":
+			case "getSheetLead":
 				return "Import leads from Sheet files";
-			case "excel":
-				return "Import leads from Excel files";
+			case "exportSheetLead":
+				return "Export leads to Sheet files";
 			case "facebookLeadAds":
 				return "Import leads from Facebook Lead Ads";
 			case "aiCall":
@@ -514,7 +512,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								duration: 30,
 							};
 							break;
-						case "sheet":
+						case "getSheetLead":
 							defaultSettings = {
 								filePath: "",
 								sheetName: "",
@@ -523,7 +521,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								hasHeader: true,
 							};
 							break;
-						case "excel":
+						case "exportSheetLead":
 							defaultSettings = {
 								filePath: "",
 								sheetName: "",
@@ -761,9 +759,9 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								switch (node.type) {
 									case "googleSheets":
 										return "#0F9D58";
-									case "sheet":
+									case "getSheetLead":
 										return "#16a34a"; // Green
-									case "excel":
+									case "exportSheetLead":
 										return "#217346"; // Excel green
 									case "facebookLeadAds":
 										return "#1877f2";

@@ -139,7 +139,7 @@ const getNodeTypeFromId = (nodeId: string): string => {
 	if (basePart.includes("email")) return "email";
 	if (basePart.includes("sms")) return "sms";
 	if (basePart.includes("facebook")) return "facebookLeadAds";
-	if (basePart.includes("google") && basePart.includes("sheet"))
+	if (basePart.includes("google") && basePart.includes("getSheetLead"))
 		return "googleSheets";
 	if (basePart.includes("google") && basePart.includes("calendar"))
 		return "googleCalendar";
