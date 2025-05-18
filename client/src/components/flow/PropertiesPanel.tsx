@@ -2009,23 +2009,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						sx={{ ml: 1 }}
 					/>
 				</Box>
-				{selectedNode.type !== "deadLead" && (
-					<Button
-						variant="contained"
-						color="primary"
-						startIcon={
-							isSaving ? (
-								<CircularProgress size={16} color="inherit" />
-							) : (
-								<Save />
-							)
-						}
-						onClick={handleSaveChanges}
-						disabled={!hasChanges || isSaving}
-					>
-						{isSaving ? "Saving..." : "Save Changes"}
-					</Button>
-				)}
 			</Box>
 		</PanelContainer>
 	);

@@ -248,8 +248,7 @@ const categorizeNodes = (nodes: NodeType[]): NodeCategory[] => {
 			nodeKey.includes("Webhook") ||
 			nodeKey.includes("sendWebhook") ||
 			nodeKey.includes("condition") ||
-			nodeKey.includes("googleCalendar") ||
-			nodeKey.includes("deadLead")
+			nodeKey.includes("googleCalendar")
 		) {
 			processingCategory.push(nodeItem);
 		} else if (
@@ -341,12 +340,6 @@ const fallbackNodeCategories: NodeCategory[] = [
 				label: "Condition",
 				icon: getNodeIcon("condition"),
 				color: getNodeColor("condition"),
-			},
-			{
-				type: "deadLead",
-				label: "Dead Lead Flow",
-				icon: getNodeIcon("deadLead"),
-				color: getNodeColor("deadLead"),
 			},
 		],
 	},

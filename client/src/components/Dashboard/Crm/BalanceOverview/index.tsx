@@ -149,7 +149,7 @@ const BalanceOverview: React.FC = () => {
 						}}
 						className="text-black"
 					>
-						Call Attemp Statistics
+						Lead Analytics Statistics
 					</Typography>
 
 					<Box>

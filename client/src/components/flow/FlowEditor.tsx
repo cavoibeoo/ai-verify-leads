@@ -40,12 +40,14 @@ import {
 	VisibilityOff,
 	DarkMode as DarkModeIcon,
 	LightMode as LightModeIcon,
+	Assessment as AssessmentIcon,
 } from "@mui/icons-material";
 
 import Sidebar from "./Sidebar";
 import PropertiesPanel from "./PropertiesPanel";
 import CustomEdge from "./edges/CustomEdge";
 import FlowToolbar from "./FlowToolbar";
+import LeadAnalyticsChart from "./LeadAnalyticsChart";
 import {
 	AICallNode,
 	CalendarNode,
@@ -56,7 +58,6 @@ import {
 	ConfigNode,
 	ErrorNode,
 	FacebookLeadAdsNode,
-	DeadLeadNode,
 	SheetImportNode,
 	SheetExportNode,
 } from "./nodes/NodeTypes";
@@ -137,7 +138,6 @@ const nodeTypes = {
 	googleCalendar: CalendarNode,
 	sendWebhook: WebhookNode,
 	condition: ConditionNode,
-	deadLead: DeadLeadNode,
 	preVerify: ConditionNode,
 	email: EmailNode,
 	sms: SMSNode,
@@ -185,6 +185,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const [flowName, setFlowName] = useState<string>("Untitled Flow");
 	const [flowStatus, setFlowStatus] = useState<number>(1); // Default to disabled
 	const [showMiniMap, setShowMiniMap] = useState<boolean>(true);
+	const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
 
 	const fetchFlowData = useCallback(async () => {
 		if (!flowId) return;
@@ -300,8 +301,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				return "Google Calendar";
 			case "sendWebhook":
 				return "Send to webhook";
-			case "deadLead":
-				return "Dead Lead";
 			case "condition":
 				return "Condition";
 			case "preVerify":
@@ -337,8 +336,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				return "Schedule appointments";
 			case "sendWebhook":
 				return "Send lead data to a webhook";
-			case "deadLead":
-				return "Handle dead leads in the flow";
 			case "condition":
 				return "Branch based on conditions";
 			case "preVerify":
@@ -364,7 +361,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 			const isMultiOutputNode =
 				sourceNodeId === "condition" ||
 				sourceNodeId === "preverify" ||
-				sourceNodeId === "deadlead" ||
 				sourceNodeId === "aicall";
 
 			let edgeLabel = "";
@@ -702,6 +698,10 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		setShowMiniMap(!showMiniMap);
 	};
 
+	const toggleAnalytics = () => {
+		setShowAnalytics(!showAnalytics);
+	};
+
 	useEffect(() => {
 		fetchFlowData();
 	}, [fetchFlowData]);
@@ -771,8 +771,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 										return "#4285f4";
 									case "sendWebhook":
 										return "#8b5cf6";
-									case "deadLead":
-										return "#ef4444";
 									case "preVerify":
 										return "#f59e0b";
 									default:
@@ -786,6 +784,50 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 							}}
 						/>
 					)}
+
+					{/* Lead Analytics Panel */}
+					{showAnalytics && (
+						<Panel
+							position="bottom-left"
+							style={{
+								width: 400,
+								margin: 20,
+								padding: 0,
+								borderRadius: 12,
+								overflow: "hidden",
+								backdropFilter: "blur(8px)",
+								boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+							}}
+						>
+							<LeadAnalyticsChart />
+						</Panel>
+					)}
+
+					<Panel position="top-left" style={{ marginTop: 20, marginLeft: 20 }}>
+						<Tooltip
+							title={
+								showAnalytics ? "Hide Call Analytics" : "Show Call Analytics"
+							}
+							placement="right"
+						>
+							<IconButton
+								onClick={toggleAnalytics}
+								sx={{
+									backdropFilter: "blur(12px)",
+									borderRadius: "10px",
+									width: "40px",
+									height: "40px",
+									"&:hover": {
+										boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+									},
+									bgcolor: showAnalytics ? "primary.main" : "background.paper",
+									color: showAnalytics ? "white" : "primary.main",
+								}}
+							>
+								<AssessmentIcon />
+							</IconButton>
+						</Tooltip>
+					</Panel>
 
 					{/* Toggle MiniMap Button */}
 					<Panel
