@@ -1643,33 +1643,29 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 					</>
 				);
 
-			case "sms":
+			case "exportSheetLead":
 				return (
 					<>
-						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>SMS Provider</InputLabel>
-							<Select
-								value={localSettings.provider || "twilio"}
-								onChange={handleSelectChange("provider")}
-								label="SMS Provider"
-							>
-								<MenuItem value="twilio">Twilio</MenuItem>
-								<MenuItem value="messagebird">MessageBird</MenuItem>
-							</Select>
-						</FormControl>
+						{" "}
+						<CalendarConnectionSelect
+							value={localSettings.connection || ""}
+							onChange={(value) => updateSettings("connection", value)}
+						/>{" "}
 						<TextField
 							fullWidth
 							size="small"
-							label="Message Template"
+							label="Sheet URL"
 							variant="outlined"
 							margin="normal"
 							multiline
-							minRows={3}
+							minRows={1}
 							maxRows={10}
-							value={localSettings.template || ""}
-							onChange={handleTextChange("template")}
-							placeholder="Enter SMS template"
-						/>
+							value={localSettings.sheetUrl || ""}
+							onChange={handleTextChange("sheetUrl")}
+							placeholder="Enter Google Sheet URL"
+							required
+							helperText="The URL of the Google Sheet to export data to"
+						/>{" "}
 					</>
 				);
 
