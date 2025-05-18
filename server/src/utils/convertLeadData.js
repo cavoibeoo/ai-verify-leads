@@ -31,9 +31,9 @@ export const convertLeadData = async (fieldData = [], formId, accessToken) => {
             if (field.name && Array.isArray(field.values) && field.values.length > 0) {
                 const mappedFieldName = questionMap[field.name] || field.name; // fallback if not found
                 if (mappedFieldName.type === "CUSTOM") {
-                    let innerObj = {};
-                    innerObj[mappedFieldName.fieldName] = field.values[0];
-                    result["custom_fields"] = innerObj;
+                    // let innerObj = {};
+                    result[mappedFieldName.fieldName] = field.values[0];
+                    // result["custom_fields"] = innerObj;
                 } else result[mappedFieldName.fieldName.trim()] = field.values[0];
             }
         }

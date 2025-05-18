@@ -31,3 +31,4 @@ __pycache__/
 */*_result.txt
 crewai/result.txt
 crewai/transcript_analytics_crew
+*/celerybeat-schedule.*

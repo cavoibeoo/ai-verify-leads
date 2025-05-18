@@ -80,7 +80,8 @@ def pre_verify(self, message):
             "criteriaField": json.dumps(criteria),
         }
 
-        website_url = lead['leadData']['custom_fields'].get('website_link')
+        # website_url = lead['leadData']['custom_fields'].get('website_link')
+        website_url = lead['leadData'].get('website_link')
         scrape_body = {
             "url": website_url,
             "promptCriteria": settings.get('webScrapingPrompt', ''),
