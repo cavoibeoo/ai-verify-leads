@@ -889,11 +889,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 										color: showMiniMap ? "white" : "primary.main",
 									}}
 								>
-									{showMiniMap ? (
-										<VisibilityOff color="primary" />
-									) : (
-										<MapIcon color="primary" />
-									)}
+									<MapIcon />
 								</IconButton>
 							</Tooltip>
 						</Box>

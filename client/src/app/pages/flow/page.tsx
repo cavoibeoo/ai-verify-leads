@@ -731,26 +731,31 @@ const ScenarioPage: React.FC = () => {
 				<Box
 					sx={{
 						display: "flex",
-						justifyContent: "space-between",
 						alignItems: "center",
 						mb: 3,
 						flexWrap: "wrap",
 						gap: 2,
 					}}
 				>
+					<Box
+						sx={{
+							display: "flex",
+							gap: 1,
+							alignItems: "center",
+							ml: "auto",
+						}}
+					>
+						<IconButton size="small" title="Search leads">
+							<SearchIcon />
+						</IconButton>
+					</Box>
 					<SearchTextField
 						placeholder="Search scenarios..."
 						variant="outlined"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						InputProps={{
-							startAdornment: (
-								<InputAdornment position="start">
-									<SearchIcon color="action" />
-								</InputAdornment>
-							),
-						}}
 						size="small"
+						className="white-text"
 						sx={{ flexGrow: 1, maxWidth: { xs: "100%", sm: 320 } }}
 					/>
 

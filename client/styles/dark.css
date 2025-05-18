@@ -111,7 +111,6 @@
 	border-left: 1px solid var(--darkBorder) !important;
 }
 .dark-theme .MuiFormControl-root .MuiInputBase-root {
-	border: 1px solid var(--darkBorder);
 	background-color: transparent;
 }
 .dark-theme .MuiFormControl-root .MuiInputBase-root .MuiInputBase-input {
