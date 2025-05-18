@@ -41,6 +41,7 @@ import {
 	DarkMode as DarkModeIcon,
 	LightMode as LightModeIcon,
 	Assessment as AssessmentIcon,
+	History as HistoryIcon,
 } from "@mui/icons-material";
 
 import Sidebar from "./Sidebar";
@@ -48,6 +49,7 @@ import PropertiesPanel from "./PropertiesPanel";
 import CustomEdge from "./edges/CustomEdge";
 import FlowToolbar from "./FlowToolbar";
 import LeadAnalyticsChart from "./LeadAnalyticsChart";
+import LeadHistoryPanel from "./LeadHistoryPanel";
 import {
 	AICallNode,
 	CalendarNode,
@@ -186,6 +188,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const [flowStatus, setFlowStatus] = useState<number>(1); // Default to disabled
 	const [showMiniMap, setShowMiniMap] = useState<boolean>(true);
 	const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
+	const [showLeadHistory, setShowLeadHistory] = useState<boolean>(false);
 
 	const fetchFlowData = useCallback(async () => {
 		if (!flowId) return;
@@ -606,7 +609,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 						setLoading(false);
 					});
 			} else {
-				// Tạo flow mới
 				const newFlowData = {
 					name: flowName,
 					nodeData: flowData,
@@ -630,14 +632,12 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		}
 	}, [reactFlowInstance, flowId, flowName]);
 
-	// Load a saved flow
 	const onLoad = useCallback(() => {
 		const savedFlow = localStorage.getItem("flow-data");
 		if (savedFlow) {
 			try {
 				const flowData = JSON.parse(savedFlow) as FlowData;
 
-				// Ensure edges have the correct data format
 				const typedEdges = flowData.edges.map((edge) => {
 					return {
 						...edge,
@@ -647,14 +647,10 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 
 				setNodes(flowData.nodes);
 				setEdges(typedEdges);
-
-				// MUI toast equivalent will be added
 			} catch (error) {
 				console.error("Error loading flow:", error);
-				// MUI toast equivalent will be added
 			}
 		} else {
-			// MUI toast equivalent will be added
 		}
 	}, [setNodes, setEdges]);
 
@@ -672,26 +668,14 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
-
-			// toast({
-			//   title: 'Flow Exported',
-			//   description: 'Your flow has been exported as JSON.',
-			//   variant: 'default',
-			// });
 		}
 	}, [reactFlowInstance]);
 
-	// Clear the current flow
 	const onClear = useCallback(() => {
 		setNodes([]);
 		setEdges([]);
 		setSelectedNode(null);
 		setShowPropertiesPanel(false);
-		// toast({
-		//   title: 'Flow Cleared',
-		//   description: 'Your flow has been cleared.',
-		//   variant: 'default',
-		// });
 	}, [setNodes, setEdges]);
 
 	const toggleMiniMap = () => {
@@ -700,6 +684,12 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 
 	const toggleAnalytics = () => {
 		setShowAnalytics(!showAnalytics);
+		if (!showAnalytics) setShowLeadHistory(false); // Close lead history when opening analytics
+	};
+
+	const toggleLeadHistory = () => {
+		setShowLeadHistory(!showLeadHistory);
+		if (!showLeadHistory) setShowAnalytics(false); // Close analytics when opening lead history
 	};
 
 	useEffect(() => {
@@ -716,10 +706,8 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				overflow: "hidden",
 			}}
 		>
-			{/* Sidebar with node types */}
 			<Sidebar onDragStart={onDragStart} />
 
-			{/* Flow editor */}
 			<Box ref={reactFlowWrapper} sx={{ flexGrow: 1, height: "100%" }}>
 				<ReactFlow
 					nodes={nodes}
@@ -788,7 +776,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 					{/* Lead Analytics Panel */}
 					{showAnalytics && (
 						<Panel
-							position="bottom-left"
+							position="top-left"
 							style={{
 								width: 400,
 								margin: 20,
@@ -803,61 +791,112 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 						</Panel>
 					)}
 
-					<Panel position="top-left" style={{ marginTop: 20, marginLeft: 20 }}>
-						<Tooltip
-							title={
-								showAnalytics ? "Hide Call Analytics" : "Show Call Analytics"
-							}
-							placement="right"
+					{/* Lead History Panel */}
+					{showLeadHistory && (
+						<Panel
+							position="top-left"
+							style={{
+								width: 400,
+								margin: 20,
+								padding: 0,
+								borderRadius: 12,
+								overflow: "hidden",
+								backdropFilter: "blur(8px)",
+								boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+								maxHeight: "60vh",
+							}}
 						>
-							<IconButton
-								onClick={toggleAnalytics}
-								sx={{
-									backdropFilter: "blur(12px)",
-									borderRadius: "10px",
-									width: "40px",
-									height: "40px",
-									"&:hover": {
-										boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
-									},
-									bgcolor: showAnalytics ? "primary.main" : "background.paper",
-									color: showAnalytics ? "white" : "primary.main",
-								}}
-							>
-								<AssessmentIcon />
-							</IconButton>
-						</Tooltip>
-					</Panel>
+							<LeadHistoryPanel flowId={flowId} />
+						</Panel>
+					)}
 
-					{/* Toggle MiniMap Button */}
+					{/* Toggle buttons grouped in bottom-right */}
 					<Panel
 						position="bottom-right"
 						style={{ marginBottom: 140, marginRight: 20 }}
 					>
-						<Tooltip
-							title={showMiniMap ? "Hide MiniMap" : "Show MiniMap"}
-							placement="left"
-						>
-							<IconButton
-								onClick={toggleMiniMap}
-								className="lead-board"
-								sx={{
-									backdropFilter: "blur(12px)",
-									borderRadius: "10px",
-									width: "40px",
-									height: "40px",
-									"&:hover": {
-										boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
-									},
-								}}
+						<Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+							{/* Analytics Toggle Button */}
+							<Tooltip
+								title={
+									showAnalytics ? "Hide Call Analytics" : "Show Call Analytics"
+								}
+								placement="left"
 							>
-								{showMiniMap ? (
-									<VisibilityOff color="primary" />
-								) : (
-									<MapIcon color="primary" />
-								)}
-							</IconButton>
-						</Tooltip>
+								<IconButton
+									onClick={toggleAnalytics}
+									sx={{
+										backdropFilter: "blur(12px)",
+										borderRadius: "10px",
+										width: "40px",
+										height: "40px",
+										"&:hover": {
+											boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+										},
+										bgcolor: showAnalytics
+											? "primary.main"
+											: "background.paper",
+										color: showAnalytics ? "white" : "primary.main",
+									}}
+								>
+									<AssessmentIcon />
+								</IconButton>
+							</Tooltip>
+
+							{/* Lead History Toggle Button */}
+							<Tooltip
+								title={
+									showLeadHistory ? "Hide Lead History" : "Show Lead History"
+								}
+								placement="left"
+							>
+								<IconButton
+									onClick={toggleLeadHistory}
+									sx={{
+										backdropFilter: "blur(12px)",
+										borderRadius: "10px",
+										width: "40px",
+										height: "40px",
+										"&:hover": {
+											boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+										},
+										bgcolor: showLeadHistory
+											? "primary.main"
+											: "background.paper",
+										color: showLeadHistory ? "white" : "primary.main",
+									}}
+								>
+									<HistoryIcon />
+								</IconButton>
+							</Tooltip>
+
+							{/* MiniMap Toggle Button */}
+							<Tooltip
+								title={showMiniMap ? "Hide MiniMap" : "Show MiniMap"}
+								placement="left"
+							>
+								<IconButton
+									onClick={toggleMiniMap}
+									sx={{
+										backdropFilter: "blur(12px)",
+										borderRadius: "10px",
+										width: "40px",
+										height: "40px",
+										"&:hover": {
+											boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+										},
+										bgcolor: showMiniMap ? "primary.main" : "background.paper",
+										color: showMiniMap ? "white" : "primary.main",
+									}}
+								>
+									{showMiniMap ? (
+										<VisibilityOff color="primary" />
+									) : (
+										<MapIcon color="primary" />
+									)}
+								</IconButton>
+							</Tooltip>
+						</Box>
 					</Panel>
 
 					<Panel position="top-right">
@@ -886,7 +925,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				/>
 			)}
 
-			{/* Loading indicator */}
 			<Backdrop
 				sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
 				open={loading}
@@ -897,7 +935,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 	);
 };
 
-// Wrap the component with ReactFlowProvider and ThemeProvider
 const FlowEditor: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const { isDarkMode } = useTheme();
 	const theme = isDarkMode ? getDarkTheme() : getLightTheme();
