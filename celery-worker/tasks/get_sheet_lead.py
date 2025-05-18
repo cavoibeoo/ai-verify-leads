@@ -81,7 +81,7 @@ def process_sheet(sheet_id, service):
 
     if new_leads:
         formatted_leads = []
-        for lead in new_leads:
+        for lead in new_leads[1:]:
             formatted_lead = {}
             for label, value in zip(new_leads[0], lead):
                 formatted_lead[label] = value
