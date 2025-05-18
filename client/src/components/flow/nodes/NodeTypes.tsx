@@ -26,6 +26,7 @@ export const SheetImportNode = memo(({ data, selected, id }: any) => {
 				type: "Input",
 				subType: "SheetImport",
 				color: "#16a34a",
+				inputs: 0,
 			}}
 			selected={selected}
 			id={id}
@@ -42,6 +43,7 @@ export const SheetExportNode = memo(({ data, selected, id }: any) => {
 				type: "Input",
 				subType: "SheetExport",
 				color: "#16a34a",
+				outputs: 0,
 			}}
 			selected={selected}
 			id={id}
@@ -101,6 +103,7 @@ export const CalendarNode = memo(({ data, selected, id }: any) => {
 				type: "Process",
 				subType: "googleCalendar",
 				color: "#4285F4",
+				outputs: 0,
 			}}
 			selected={selected}
 			id={id}
@@ -118,6 +121,7 @@ export const WebhookNode = memo(({ data, selected, id }: any) => {
 				type: "Process",
 				subType: "API",
 				color: "#8B5CF6",
+				outputs: 0,
 			}}
 			selected={selected}
 			id={id}
