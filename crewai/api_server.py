@@ -11,6 +11,10 @@ from src.crewai.transcript_analyze_agent import analyze_transcript
 from src.crewai.pre_verify_agent import preverify_lead
 from src.crewai.crews.agent_webscraper.agent_webscraper import WebScraper
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 app = Flask(__name__)
 web_scraper = WebScraper()
 
@@ -99,6 +103,10 @@ def scrape():
         # Call the scraping and analysis function
         result = web_scraper.scrape_and_analyze(url, prompt_criteria)
         
+        if hasattr(result, '__dict__'):
+            result = result.__dict__
+        elif hasattr(result, 'to_dict'):
+            result = result.to_dict()
         # Check if result contains error
         if isinstance(result, dict) and 'error' in result:
             return jsonify(result), 500
