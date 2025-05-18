@@ -34,7 +34,7 @@ const LeadConversion: React.FC = () => {
 					setVerifiedLeads(data.verifiedLead);
 				}
 			} catch (error) {
-				console.error("Error fetching verified leads:", error);
+				console.error("Error fetching qualified leads:", error);
 			} finally {
 				setLoading(false);
 			}
@@ -151,7 +151,7 @@ const LeadConversion: React.FC = () => {
 				>
 					<Box>
 						<Typography component="span" sx={{ mb: "3px", display: "block" }}>
-							Verified Lead
+							Qualified Leads
 						</Typography>
 
 						<Typography

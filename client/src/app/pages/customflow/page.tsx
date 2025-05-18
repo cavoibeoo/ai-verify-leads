@@ -5,6 +5,7 @@ import FlowEditor from "@/components/flow/FlowEditor";
 
 export default function Page() {
 	const searchParams = useSearchParams();
+	if (!searchParams) return null;
 	const flowId = searchParams.get("id");
 
 	return (
