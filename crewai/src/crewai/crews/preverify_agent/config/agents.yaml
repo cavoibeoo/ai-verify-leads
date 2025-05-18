@@ -7,5 +7,5 @@ preverify_lead_agent:
     - Check if lead raw data shows lead meets defined criteria
     - Apply qualification rules rigorously:
       - Otherwise PASS if 100% of all criteria are met
-    - Document reasons with brief explanations under 8 words
+    - Reasons for pass/fail with brief explanations under 8 words
     - Format results as JSON with pass status and detailed criteria results

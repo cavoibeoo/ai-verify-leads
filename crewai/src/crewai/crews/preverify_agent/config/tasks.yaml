@@ -1,16 +1,14 @@
 preverify_lead:
   description: >
-    Access Facebook ads business resources from {lead_raw_data}
     Analyze if lead data in {lead_raw_data} meets criteria from {criteria_field}.
     and passing if 100% of all criteria are met.
 
     VERIFICATION PROCESS:
-    1. Read raw lead data from {lead_raw_data}
-    2. Apply qualification criteria rigorously to each lead
-    3. Document reasons for pass/fail with brief explanations
-    4. Create structured result with overall qualification status
+    1. Apply qualification criteria rigorously to each lead
+    2. reasons for pass/fail with brief explanations
+    3. Create structured result with overall qualification status
 
-    Write to "result.txt" as JSON:
+    result as JSON:
     {
       "pass": boolean,
       "criteria_results": [

@@ -34,12 +34,17 @@ def analyze():
         # Call transcript analysis function
         result = analyze_transcript(customer_prompt, transcript)
         
-        # Check if result is JSON with error
+        if hasattr(result, '__dict__'):
+            result = result.__dict__
+        elif hasattr(result, 'to_dict'):
+            result = result.to_dict()
+        # Check if result contains error
         if isinstance(result, dict) and 'error' in result:
             return jsonify(result), 500
         
         # Return successful result
         return jsonify(result)
+    
     except Exception as e:
         # Log detailed error for debugging
         error_traceback = traceback.format_exc()
