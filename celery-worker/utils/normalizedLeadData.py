@@ -1,52 +1,48 @@
 # First, install cerberus if not installed: pip install cerberus
-from cerberus import Validator
+from config import Config
+import requests
+import json
 
 
-def normalize_lead(data):
-    # Define standard field mappings
-    field_mappings = {
-        'full_name': ['user_name', 'name', 'lead_name'],
-        'email': ['user_email', 'lead_email', 'email_address'],
-        'phone': ['phone_number', 'contact_number', 'mobile', 'telephone', 'number'],
-        'job_title': ['position', 'title', 'role', 'occupation'],
-        'company_name': ['company', 'organization', 'business_name', 'employer'],
-        'website_link': ['website', 'web_address', 'url', 'site'],
-        'address': ['location', 'postal_address', 'mailing_address'],
-        'industry': ['sector', 'business_type', 'field'],
-        'company_size': ['size', 'employees', 'team_size'],
-        'source': ['lead_source', 'origin', 'referral_source']
+def normalize_lead(fields):
+    headers = {
+        "Authorization": f"Bearer {Config.OPENAI_API_KEY}",
+        "Content-Type": "application/json"
     }
 
-    # Define schema for validation
-    schema = {
-        'full_name': {'type': 'string'},
-        'email': {'type': 'string'},
-        'phone': {'type': 'string'},
-        'job_title': {'type': 'string'},
-        'company_name': {'type': 'string'},
-        'website_link': {'type': 'string'},
-        'address': {'type': 'string'},
-        'industry': {'type': 'string'},
-        'company_size': {'type': 'string'},
-        'source': {'type': 'string'}
+    data = {
+        "model": Config.OPENAI_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": """You are an expert at mapping lead field names to standardized fields.
+                Map the input field names exactly to these canonical fields where appropriate:
+                \n\nfull_name, email, phone, job_title, company_name, website_link, address, industry, company_size.
+                \n\nIf a field clearly matches one of these, output the canonical field name. Only fall back to simplified 
+                snake_case when no match is possible. Output only a JSON array of mapped field names like this: [\"full_name\", \"email\", ...] 
+                """
+            },
+            {
+                "role": "user",
+                "content": f"Map the following lead information fields: {fields}."
+            },
+        ],
+        "temperature": 0.1
     }
 
-    # Normalize data by applying alias mappings
-    normalized_data = {}
-    for standard_field, aliases in field_mappings.items():
-        # Check standard field name first
-        if standard_field in data:
-            normalized_data[standard_field] = data[standard_field]
-        else:
-            # Check aliases
-            for alias in aliases:
-                if alias in data:
-                    normalized_data[standard_field] = data[alias]
-                    break
+    print("Sending fields to OpenAI API for normalize fields...")
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions", headers=headers, json=data)
 
-    # Validate the normalized data
-    v = Validator(schema, allow_unknown=True)
-    if not v.validate(normalized_data):
-        print(f"Validation errors: {v.errors}")
-
-    return normalized_data
+    if response.status_code == 200:
+        print(response.json()["choices"][0]["message"]["content"])
+        content = response.json()["choices"][0]["message"]["content"]
+        # Convert the JSON string to a Python list
+        try:
+            normalized_fields = json.loads(content)
+            return normalized_fields
+        except json.JSONDecodeError:
+            # In case the response isn't properly formatted JSON
+            return content
+    else:
+        return f"Error: {response.status_code} - {response.text}"

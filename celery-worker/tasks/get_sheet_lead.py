@@ -57,7 +57,7 @@ def get_sheet_lead(self):
 
         return {'status': True, 'data': "response.text"}
     except Exception as e:
-        logger.error(f"Failed to send webhook: {str(e)}")
+        logger.error(f"Failed when get lead from sheet: {str(e)}")
         if self.request.retries < self.max_retries:
             countdown = 5  # Retry after 5 seconds
             raise self.retry(exc=e, countdown=countdown)
@@ -81,12 +81,13 @@ def process_sheet(sheet_id, service):
 
     if new_leads:
         formatted_leads = []
+        new_leads[0] = normalize_lead(new_leads[0])
         for lead in new_leads[1:]:
             formatted_lead = {}
             for label, value in zip(new_leads[0], lead):
                 formatted_lead[label] = value
 
-            formatted_leads.append(normalize_lead(formatted_lead))
+            formatted_leads.append(formatted_lead)
         return formatted_leads
 
 
