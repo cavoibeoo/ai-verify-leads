@@ -263,22 +263,24 @@ const LeadHistoryPanel: React.FC<LeadHistoryPanelProps> = ({
 					>
 						<Tab
 							label={
-								<Badge
-									badgeContent={allLeads.length}
-									color="primary"
-									max={99}
-									sx={{
-										"& .MuiBadge-badge": {
-											fontSize: "0.65rem",
-											height: 16,
-											minWidth: 16,
-										},
-									}}
-								>
-									<Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
-										All
-									</Typography>
-								</Badge>
+								<Box sx={{ display: "flex", alignItems: "center" }}>
+									<Badge
+										badgeContent={allLeads.length}
+										color="primary"
+										max={99}
+										sx={{
+											"& .MuiBadge-badge": {
+												fontSize: "0.65rem",
+												height: 16,
+												minWidth: 16,
+											},
+										}}
+									>
+										<Box component="span" sx={{ fontSize: "0.75rem" }}>
+											All
+										</Box>
+									</Badge>
+								</Box>
 							}
 							sx={{ textTransform: "none" }}
 						/>
@@ -291,36 +293,35 @@ const LeadHistoryPanel: React.FC<LeadHistoryPanelProps> = ({
 								<Tab
 									key={node.id}
 									label={
-										<Badge
-											badgeContent={count}
-											color="primary"
-											max={99}
-											sx={{
-												"& .MuiBadge-badge": {
-													fontSize: "0.65rem",
-													height: 16,
-													minWidth: 16,
-												},
-											}}
-										>
-											<Box sx={{ display: "flex", alignItems: "center" }}>
-												<Box
-													sx={{
-														width: 8,
-														height: 8,
-														borderRadius: "50%",
-														bgcolor: nodeColor,
-														mr: 0.75,
-													}}
-												/>
-												<Typography
-													variant="body2"
-													sx={{ fontSize: "0.75rem" }}
-												>
-													{node.label || node.type}
-												</Typography>
-											</Box>
-										</Badge>
+										<Box sx={{ display: "flex", alignItems: "center" }}>
+											<Badge
+												badgeContent={count}
+												color="primary"
+												max={99}
+												sx={{
+													"& .MuiBadge-badge": {
+														fontSize: "0.65rem",
+														height: 16,
+														minWidth: 16,
+													},
+												}}
+											>
+												<Box sx={{ display: "flex", alignItems: "center" }}>
+													<Box
+														sx={{
+															width: 8,
+															height: 8,
+															borderRadius: "50%",
+															bgcolor: nodeColor,
+															mr: 0.75,
+														}}
+													/>
+													<Box component="span" sx={{ fontSize: "0.75rem" }}>
+														{node.label || node.type}
+													</Box>
+												</Box>
+											</Badge>
+										</Box>
 									}
 									sx={{ textTransform: "none" }}
 								/>
@@ -336,7 +337,9 @@ const LeadHistoryPanel: React.FC<LeadHistoryPanelProps> = ({
 				</Box>
 			) : filteredLeads.length === 0 ? (
 				<Box sx={{ textAlign: "center", my: 4, color: "text.secondary" }}>
-					<Typography variant="body2">No lead activity yet</Typography>
+					<Typography component="div" variant="body2">
+						No lead activity yet
+					</Typography>
 				</Box>
 			) : (
 				<List sx={{ p: 0, maxHeight: 400, overflow: "auto" }}>
@@ -369,6 +372,8 @@ const LeadHistoryPanel: React.FC<LeadHistoryPanelProps> = ({
 										</Avatar>
 									</ListItemAvatar>
 									<ListItemText
+										primaryTypographyProps={{ component: "div" }}
+										secondaryTypographyProps={{ component: "div" }}
 										primary={
 											<Box
 												sx={{ display: "flex", alignItems: "center", mb: 0.5 }}
@@ -397,7 +402,7 @@ const LeadHistoryPanel: React.FC<LeadHistoryPanelProps> = ({
 											</Box>
 										}
 										secondary={
-											<>
+											<Box component="div">
 												{/* Node type indicator */}
 												<Tooltip
 													title={`Node: ${lead.nodeId || "Unknown"}`}
@@ -460,16 +465,17 @@ const LeadHistoryPanel: React.FC<LeadHistoryPanelProps> = ({
 												</Tooltip>
 
 												<Typography
-													component="span"
+													component="div"
 													variant="body2"
 													color="text.secondary"
-													sx={{ display: "block", fontSize: "0.75rem" }}
+													sx={{ fontSize: "0.75rem", mb: 0.5 }}
 												>
 													{lead.leadData.email ||
 														lead.leadData.phone ||
 														lead.source ||
 														"No contact info"}
 												</Typography>
+
 												<Box
 													sx={{
 														display: "flex",
@@ -498,7 +504,7 @@ const LeadHistoryPanel: React.FC<LeadHistoryPanelProps> = ({
 														</Typography>
 													)}
 												</Box>
-											</>
+											</Box>
 										}
 									/>
 								</ListItem>
