@@ -127,3 +127,24 @@ def update_lead(leadId, data):
         update_fields[key] = value
 
     collection.update_one({"_id": ObjectId(leadId)}, {"$set": update_fields})
+
+
+def add_many_leads(leads_data):
+    """
+    Add multiple leads to the database.
+
+    Args:
+        leads_data (list): A list of dictionaries containing lead data.
+
+    Returns:
+        list: A list of inserted document IDs.
+    """
+    client = get_mongo_client()
+    db = client.get_default_database()
+    collection = db["leads"]
+
+    if not leads_data or not isinstance(leads_data, list):
+        raise ValueError("leads_data must be a non-empty list")
+
+    result = collection.insert_many(leads_data)
+    return result.inserted_ids
