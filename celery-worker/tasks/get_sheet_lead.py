@@ -41,10 +41,14 @@ def get_sheet_lead(self, message):
         socket.setdefaulttimeout(30)  # 30 seconds timeout
 
         leads = process_sheet(extract_sheet_id(sheet.get("sheetUrl", "")), service)
+        refresh_tokens_if_needed(credentials, tokens, sheet, sheet["connection"])
+
         ids = add_leads(leads, sheet["userId"], sheet["flowId"], sheet["nodeId"])
         # Convert ObjectId to string to make it JSON serializable
         id_strings = [str(obj_id) for obj_id in ids]
         time.sleep(3)
+        if not id_strings:
+            return {'status': True, 'data': "No new leads."}
         response = requests.post("http://127.0.0.1:3001/api/lead/publish", json={
             "userId": str(sheet['userId']),
             "leadIds": id_strings,
@@ -52,11 +56,9 @@ def get_sheet_lead(self, message):
             "isRetry": False,
         })
         response_data = response.json()
-        print(f"Publish lead to next node... {response_data}")
+        message = f"Response: {response_data.get('statusCode', 200)} - {response_data.get('message', 'No message')}"
 
-        refresh_tokens_if_needed(credentials, tokens, sheet, sheet["connection"])
-
-        return {'status': True, 'data': "response.text"}
+        return {'status': True, 'data': message}
     except Exception as e:
         logger.error(f"Failed when get lead from sheet: {str(e)}")
         if self.request.retries < self.max_retries:
@@ -110,6 +112,7 @@ def get_sheet_data(sheet_id, range_name, service):
 
 def add_leads(leads, userId, flowId, nodeId):
     print(f"Adding leads...")
+
     leadObjects = []
     for lead in leads:
         leadObject = {

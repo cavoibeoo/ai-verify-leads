@@ -1,5 +1,8 @@
 from db import get_mongo_client
 from bson import ObjectId
+from pymongo import UpdateOne
+import datetime
+import re
 
 
 def get_flow(message):
@@ -129,16 +132,26 @@ def update_lead(leadId, data):
     collection.update_one({"_id": ObjectId(leadId)}, {"$set": update_fields})
 
 
+def normalize_phone(phone):
+    # Simple normalization: keep digits only
+    return re.sub(r'\D', '', phone)
+
+
+def get_deduplication_key(lead_data):
+    email = lead_data.get("email", "").strip().lower()
+    phone = normalize_phone(lead_data.get("phone", ""))
+    return email, phone
+
+
+def lead_data_changed(existing_data, new_data):
+    # Compare only relevant fields; can customize as needed
+    for key, new_value in new_data.items():
+        if existing_data.get(key) != new_value:
+            return True
+    return False
+
+
 def add_many_leads(leads_data):
-    """
-    Add multiple leads to the database.
-
-    Args:
-        leads_data (list): A list of dictionaries containing lead data.
-
-    Returns:
-        list: A list of inserted document IDs.
-    """
     client = get_mongo_client()
     db = client.get_default_database()
     collection = db["leads"]
@@ -146,5 +159,56 @@ def add_many_leads(leads_data):
     if not leads_data or not isinstance(leads_data, list):
         raise ValueError("leads_data must be a non-empty list")
 
-    result = collection.insert_many(leads_data)
-    return result.inserted_ids
+    bulk_operations = []
+    inserted_ids = []
+
+    for lead in leads_data:
+        lead_data = lead.get("leadData", {})
+        email, phone = get_deduplication_key(lead_data)
+
+        query = {
+            "userId": lead.get("userId"),
+            "flowId": lead.get("flowId"),
+            "$or": [
+                {"leadData.email": email},
+                {"leadData.phone": phone}
+            ]
+        }
+
+        existing = collection.find_one(query)
+
+        if existing:
+            # Merge logic: update if the existing one is not verified or is old
+            should_update = (
+                existing.get("status", 0) == 0 or
+                lead_data_changed(existing.get("leadData", {}), lead_data)
+            )
+
+            if should_update:
+                inserted_ids.append(existing["_id"])
+
+                bulk_operations.append(UpdateOne(
+                    {"_id": existing["_id"]},
+                    {"$set": {
+                        "leadData": lead_data,
+                        "updatedAt": datetime.datetime.now(),
+                        "source": lead.get("source", "unknown"),
+                        "nodeId": lead.get("nodeId"),
+                        "error": lead.get("error", {}),
+                    }}
+                ))
+        else:
+            lead["_id"] = ObjectId()  # assign an ID before insert so we can track it
+            inserted_ids.append(lead["_id"])
+            bulk_operations.append(lead)
+
+    # Split insert vs update
+    inserts = [doc for doc in bulk_operations if not isinstance(doc, UpdateOne)]
+    updates = [doc for doc in bulk_operations if isinstance(doc, UpdateOne)]
+
+    if inserts:
+        result = collection.insert_many(inserts)
+
+    if updates:
+        collection.bulk_write(updates)
+    return inserted_ids
