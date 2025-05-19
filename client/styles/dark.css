@@ -707,3 +707,10 @@
 	background-color: #007bff !important;
 	color: #fff !important;
 }
+.dark-theme .lead-analytics-chart {
+	background: linear-gradient(
+		124deg,
+		rgb(131 131 131 / 4%) 0%,
+		rgb(0 5 60 / 1%) 100%
+	) !important;
+}

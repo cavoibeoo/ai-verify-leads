@@ -166,7 +166,7 @@ const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
 					)}`,
 				border: (theme) => `1px solid ${alpha(theme.palette.divider, 0.05)}`,
 			}}
-			className={className}
+			className={className + " lead-analytics-chart"}
 		>
 			<Typography
 				variant="h6"
