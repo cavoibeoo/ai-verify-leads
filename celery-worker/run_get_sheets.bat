@@ -10,6 +10,6 @@ pip install -r requirements.txt
 echo.
 
 echo Starting Celery worker...
-celery -A celery_app worker --queues=getSheetLead.consumer --loglevel=info --pool=gevent --concurrency=5 --hostname=getSheetLeadWorker@%%h
+celery -A celery_app worker --queues=getSheets.consumer --loglevel=info --pool=gevent --concurrency=5 --hostname=getSheetsWorker@%%h
 
 pause

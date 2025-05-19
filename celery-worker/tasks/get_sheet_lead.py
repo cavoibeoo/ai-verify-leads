@@ -6,6 +6,7 @@ import os
 import datetime
 import logging
 import socket
+import time
 
 from urllib.parse import urljoin
 from google.oauth2.credentials import Credentials
@@ -21,7 +22,7 @@ from tasks.base_tasks_handler import BaseTaskHandler
 
 
 @app.task(name="tasks.getSheetLead", bind=True, max_retries=3)
-def get_sheet_lead(self):
+def get_sheet_lead(self, message):
     # Set up logging
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -29,31 +30,31 @@ def get_sheet_lead(self):
 
     try:
         # Extract the connection ID from db
-        requiredSheet = get_required_sheets()
-        for sheet in requiredSheet:
-            print(f"sheet: {sheet}")
-            conn = get_user_calendar_conn(sheet, sheet["connection"])
-            tokens = conn["tokens"]
+        sheet = message
+        print(f"sheet: {sheet}")
+        conn = get_user_calendar_conn(sheet, sheet["connection"])
+        tokens = conn["tokens"]
 
-            # # Create credentials and build service
-            credentials = create_credentials(tokens)
-            service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
-            socket.setdefaulttimeout(30)  # 30 seconds timeout
+        # # Create credentials and build service
+        credentials = create_credentials(tokens)
+        service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
+        socket.setdefaulttimeout(30)  # 30 seconds timeout
 
-            leads = process_sheet(extract_sheet_id(sheet.get("sheetUrl", "")), service)
-            ids = add_leads(leads, sheet["userId"], sheet["flowId"], sheet["nodeId"])
-            # Convert ObjectId to string to make it JSON serializable
-            id_strings = [str(obj_id) for obj_id in ids]
-            response = requests.post("http://127.0.0.1:3001/api/lead/publish", json={
-                "userId": str(sheet['userId']),
-                "leadIds": id_strings,
-                "result": None,
-                "isRetry": False,
-            })
-            response_data = response.json()
-            print(f"Publish lead to next node... {response_data}")
+        leads = process_sheet(extract_sheet_id(sheet.get("sheetUrl", "")), service)
+        ids = add_leads(leads, sheet["userId"], sheet["flowId"], sheet["nodeId"])
+        # Convert ObjectId to string to make it JSON serializable
+        id_strings = [str(obj_id) for obj_id in ids]
+        time.sleep(3)
+        response = requests.post("http://127.0.0.1:3001/api/lead/publish", json={
+            "userId": str(sheet['userId']),
+            "leadIds": id_strings,
+            "result": None,
+            "isRetry": False,
+        })
+        response_data = response.json()
+        print(f"Publish lead to next node... {response_data}")
 
-            refresh_tokens_if_needed(credentials, tokens, sheet, sheet["connection"])
+        refresh_tokens_if_needed(credentials, tokens, sheet, sheet["connection"])
 
         return {'status': True, 'data': "response.text"}
     except Exception as e:
@@ -91,30 +92,6 @@ def process_sheet(sheet_id, service):
         return formatted_leads
 
 
-def get_sheet_data(sheet_id, range_name, service):
-    """Fetch data from Google Sheets."""
-    sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=sheet_id, range=range_name).execute()
-    return result.get('values', [])
-
-
-def get_required_sheets():
-    requiredSheets = []
-    flows = get_active_flows()
-    for flow in flows:
-        nodes = flow["nodeData"]["nodes"]
-        for node in nodes:
-            if node["type"] == "getSheetLead":
-                settings = node["data"]["settings"]
-                sheetUrl = settings.get("sheetUrl")
-                connection = settings.get("connection")
-                if sheetUrl and connection:
-                    requiredSheets.append(
-                        {"sheetUrl": sheetUrl, "connection": connection,
-                         "userId": flow["userId"], "flowId": flow["_id"], "nodeId": node["id"]})
-    return requiredSheets
-
-
 def extract_sheet_id(sheet_url):
     """Extract the sheet ID from the URL."""
     match = re.search(r'/d/([a-zA-Z0-9-_]+)', sheet_url)
@@ -124,13 +101,20 @@ def extract_sheet_id(sheet_url):
         raise ValueError("Invalid Google Sheets URL")
 
 
+def get_sheet_data(sheet_id, range_name, service):
+    """Fetch data from Google Sheets."""
+    sheet = service.spreadsheets()
+    result = sheet.values().get(spreadsheetId=sheet_id, range=range_name).execute()
+    return result.get('values', [])
+
+
 def add_leads(leads, userId, flowId, nodeId):
     print(f"Adding leads...")
     leadObjects = []
     for lead in leads:
         leadObject = {
-            "userId": userId,
-            "flowId": flowId,
+            "userId": ObjectId(userId),
+            "flowId": ObjectId(flowId),
             "status": 1,
             "isVerified": {
                 "status": 0,

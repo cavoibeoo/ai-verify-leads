@@ -17,6 +17,7 @@ app.conf.update(
         'tasks.preVerify': {'queue': 'preVerify.consumer'},
         'tasks.sendWebhook': {'queue': 'sendWebhook.consumer'},
         'tasks.googleCalendar': {'queue': 'googleCalendar.consumer'},
+        'tasks.getSheets': {'queue': 'getSheets.consumer'},
         'tasks.getSheetLead': {'queue': 'getSheetLead.consumer'},
     },
     broker_connection_timeout=10,
@@ -25,9 +26,9 @@ app.conf.update(
 # Configure periodic taskss
 app.conf.beat_schedule = {
     'get-sheet-leads-every-5-minutes': {
-        'task': 'tasks.getSheetLead',
+        'task': 'tasks.getSheets',
         'schedule': 60.0,  # 5 minutes in seconds
-        'options': {'queue': 'getSheetLead.consumer'},
+        'options': {'queue': 'getSheets.consumer'},
     },
 }
 
@@ -38,6 +39,7 @@ def _import_tasks():
     import tasks.send_webhook
     import tasks.google_calendar
     import tasks.get_sheet_lead
+    import tasks.get_sheets
 
 
 _import_tasks()
