@@ -98,16 +98,50 @@ const processLeadEvent = async (lead) => {
                 page.access_token
             );
 
-            let importedLeads = new Lead({
-                userId: getObjectId(flow.userId),
-                flowId: getObjectId(flow._id),
-                leadData: convertedData,
-                nodeId: currentNode.id,
-                source: "facebook",
+            const email = convertedData.email?.trim().toLowerCase();
+            const phone = convertedData.phone?.replace(/\D/g, "");
+
+            const existing = await Lead.findOne({
+                $or: [{ "leadData.email": email }, { "leadData.phone": phone }],
+                userId: flow.userId,
             });
 
-            await importedLeads.save();
-            await publishLead(flow.userId, flow._id, currentNode.id, [importedLeads]);
+            let leadDoc;
+
+            const now = new Date();
+
+            const shouldUpdate = (existing) => {
+                const status = existing?.isVerified?.status == 1 ? 1 : 0;
+                const dataChanged = Object.keys(convertedData).some(
+                    (key) => existing.leadData?.[key] !== convertedData[key]
+                );
+                return dataChanged || status === 1;
+            };
+
+            if (existing) {
+                if (shouldUpdate(existing)) {
+                    console.log("Updating existing lead...");
+                    existing.leadData = convertedData;
+                    existing.updatedAt = now;
+                    existing.source = "facebook";
+                    existing.nodeId = currentNode.id;
+                    await existing.save();
+                    leadDoc = existing;
+                } else {
+                    console.warn("No new leads. Skipping...");
+                    continue;
+                }
+            } else {
+                leadDoc = new Lead({
+                    userId: getObjectId(flow.userId),
+                    flowId: getObjectId(flow._id),
+                    leadData: convertedData,
+                    nodeId: currentNode.id,
+                    source: "facebook",
+                });
+                await leadDoc.save();
+            }
+            if (leadDoc) await publishLead(flow.userId, flow._id, currentNode.id, [leadDoc]);
         }
     } catch (err) {
         console.error("Error processing lead event:", err);
