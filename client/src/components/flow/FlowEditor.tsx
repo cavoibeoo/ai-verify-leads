@@ -513,18 +513,14 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 							break;
 						case "getSheetLead":
 							defaultSettings = {
-								filePath: "",
-								sheetName: "",
-								sheetType: "csv",
-								delimiter: ",",
-								hasHeader: true,
+								sheetUrl: "",
+								connection: "",
 							};
 							break;
 						case "exportSheetLead":
 							defaultSettings = {
-								filePath: "",
-								sheetName: "",
-								hasHeader: true,
+								sheetUrl: "",
+								connection: "",
 							};
 							break;
 						case "preVerify":
