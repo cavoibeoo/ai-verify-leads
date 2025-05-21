@@ -792,7 +792,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 						<Panel
 							position="top-left"
 							style={{
-								width: 400,
+								width: 700,
 								margin: 20,
 								padding: 0,
 								borderRadius: 12,

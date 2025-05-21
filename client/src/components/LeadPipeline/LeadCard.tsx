@@ -250,7 +250,7 @@ const LeadCard = ({ lead, onDelete, onRetry }: LeadCardProps) => {
 	const nodeColor = getNodeColorFromType(nodeType);
 
 	const shouldShowRetryButton = () => {
-		return !lead.isVerified || lead.isVerified.status !== 2;
+		return lead.error && lead.error.status;
 	};
 
 	return (
