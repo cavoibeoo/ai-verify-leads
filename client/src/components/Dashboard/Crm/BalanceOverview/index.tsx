@@ -20,11 +20,11 @@ const BalanceOverview: React.FC = () => {
 	const series = [
 		{
 			name: "Call Attempt",
-			data: [5, 12, 20, 23, 25, 30, 40, 45, 50, 70, 65, 80],
+			data: [15, 20, 30, 30, 35, 45, 60, 70, 80, 85, 95, 120],
 		},
 		{
-			name: "Calling Fail",
-			data: [15, 20, 30, 30, 35, 45, 60, 70, 80, 85, 95, 120],
+			name: "Calling Failed",
+			data: [5, 12, 20, 23, 25, 30, 40, 45, 50, 70, 65, 80],
 		},
 	];
 
@@ -37,7 +37,7 @@ const BalanceOverview: React.FC = () => {
 				show: false,
 			},
 		},
-		colors: ["#AD63F6", "#605DFF"],
+		colors: ["#14c3c9", "#ff0033"],
 		dataLabels: {
 			enabled: false,
 		},
@@ -86,7 +86,7 @@ const BalanceOverview: React.FC = () => {
 			min: 0,
 			labels: {
 				formatter: (val) => {
-					return "$" + val + "k";
+					return val + " attempts";
 				},
 				style: {
 					colors: "#64748B",

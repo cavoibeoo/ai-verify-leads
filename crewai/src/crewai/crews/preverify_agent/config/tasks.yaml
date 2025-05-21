@@ -16,7 +16,6 @@ preverify_lead:
           "criterion": "criterion_name",
           "passed": boolean,
           "reason": "brief explanation (<=8 words)",
-          "must_have": boolean
         }
       ]
     }

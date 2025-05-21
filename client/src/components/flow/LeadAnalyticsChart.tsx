@@ -19,10 +19,10 @@ const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
 	}, []);
 
 	const mockData = {
-		successful: 68,
-		hangup: 23,
-		missed: 45,
-		totalCalls: 136,
+		successful: 9,
+		hangup: 2,
+		missed: 3,
+		totalCalls: 13,
 	};
 	const series = [mockData.successful, mockData.hangup, mockData.missed];
 
