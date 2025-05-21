@@ -44,8 +44,8 @@ def google_calendar(self, message):
         # Time conversion for available slots
         start_str = settings["startTime"]
         end_str = settings["endTime"]
-        start_hour = datetime.strptime(start_str, "%H:%M") - timedelta(hours=7)
-        end_hour = datetime.strptime(end_str, "%H:%M") - timedelta(hours=7)
+        start_hour = dt.strptime(start_str, "%H:%M") - timedelta(hours=7)
+        end_hour = dt.strptime(end_str, "%H:%M") - timedelta(hours=7)
 
         # Find available slot
         next_slot = find_nearest_available_slot(busy_slots,

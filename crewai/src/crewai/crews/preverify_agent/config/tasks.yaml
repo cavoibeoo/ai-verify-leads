@@ -1,28 +1,27 @@
 preverify_lead:
-  description: >
-    Analyze if lead data in {lead_raw_data} meets criteria from {criteria_field}.
-    and passing if 100% of all criteria are met.
+    description: >
+        Analyze if lead data in {lead_raw_data} meets criteria from {criteria_field}.
+        and passing if 100% of all criteria are met.
 
-    VERIFICATION PROCESS:
-    1. Apply qualification criteria rigorously to each lead
-    2. reasons for pass/fail with brief explanations
-    3. Create structured result with overall qualification status
+        VERIFICATION PROCESS:
+        1. Apply qualification criteria rigorously to each lead
+        2. reasons for pass/fail with brief explanations
+        3. Create structured result with overall qualification status
 
-    result as JSON:
-    {
-      "pass": boolean,
-      "criteria_results": [
+        result as JSON:
         {
-          "criterion": "criterion_name",
-          "passed": boolean,
-          "reason": "brief explanation (<=8 words)",
-          "must_have": boolean
+          "pass": boolean,
+          "criteria_results": [
+            {
+              "criterion": "criterion_name",
+              "passed": boolean,
+              "reason": "brief explanation (<=8 words)",
+            }
+          ]
         }
-      ]
-    }
 
-  expected_output: >
-    JSON format with pass/fail status and criteria results for each lead. 
-    Includes brief explanations (under 8 words) for decisions made.
+    expected_output: >
+        JSON format with pass/fail status and criteria results for each lead. 
+        Includes brief explanations (under 8 words) for decisions made.
 
-  agent: preverify_lead_agent
+    agent: preverify_lead_agent

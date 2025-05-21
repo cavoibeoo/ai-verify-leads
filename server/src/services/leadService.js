@@ -218,10 +218,11 @@ export const publishByApi = async (userId, leadIds, result, isRetry) => {
             throw new ApiError(StatusCodes.NOT_FOUND, "One or more leads not found.");
         }
 
+        console.log("Leads found:", leads);
         return (result = await publishLead(
             userId,
             leads[0].flowId,
-            leads[0].flowId.nodeId,
+            leads[0].nodeId,
             leads,
             result,
             isRetry
