@@ -7,6 +7,7 @@ preverify_lead:
     1. Apply qualification criteria rigorously to each lead
     2. reasons for pass/fail with brief explanations
     3. Create structured result with overall qualification status
+    Note: phone has country code also consider it valid phone number.
 
     result as JSON:
     {

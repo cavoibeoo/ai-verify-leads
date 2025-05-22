@@ -871,7 +871,6 @@ const getOperatorsForType = (type: string) => {
 				{ value: "equals", label: "Equals" },
 				{ value: "notEquals", label: "Not Equals" },
 				{ value: "startsWith", label: "Starts With" },
-				{ value: "isValid", label: "Is Valid Phone" },
 				{ value: "countryCode", label: "Has Country Code" },
 			];
 		case "date":

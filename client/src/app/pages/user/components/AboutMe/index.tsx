@@ -8,7 +8,7 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 
-const AboutMe: React.FC<{ myInfo: any }> = ({ myInfo }) => {
+const AboutMe: React.FC = () => {
 	return (
 		<>
 			{/* Post #1 */}
@@ -54,7 +54,7 @@ const AboutMe: React.FC<{ myInfo: any }> = ({ myInfo }) => {
 										justifyContent: "center",
 									}}
 								>
-									<strong>{myInfo.name}</strong>
+									<strong>Duc Quang</strong>
 								</TableCell>
 							</TableRow>
 							<TableRow>
@@ -74,7 +74,7 @@ const AboutMe: React.FC<{ myInfo: any }> = ({ myInfo }) => {
 										justifyContent: "center",
 									}}
 								>
-									<strong>{myInfo.email}</strong>
+									<strong>quangcuatuonglai@gmail.com</strong>
 								</TableCell>
 							</TableRow>
 							<TableRow>
@@ -94,9 +94,7 @@ const AboutMe: React.FC<{ myInfo: any }> = ({ myInfo }) => {
 										justifyContent: "center",
 									}}
 								>
-									<strong>
-										{new Date(myInfo.createDate).toLocaleDateString()}
-									</strong>
+									<strong>2024-01-01</strong>
 								</TableCell>
 							</TableRow>
 							<TableRow>
@@ -116,9 +114,7 @@ const AboutMe: React.FC<{ myInfo: any }> = ({ myInfo }) => {
 										justifyContent: "center",
 									}}
 								>
-									<strong>
-										{myInfo.department ? myInfo.department : "N/A"}
-									</strong>
+									<strong>528/21 Le Van Viet. District 9. Thu Duc City</strong>
 								</TableCell>
 							</TableRow>
 							<TableRow>
@@ -138,7 +134,7 @@ const AboutMe: React.FC<{ myInfo: any }> = ({ myInfo }) => {
 										justifyContent: "center",
 									}}
 								>
-									<strong>{myInfo.jobTitle ? myInfo.jobTitle : "N/A"}</strong>
+									<strong>Frontend Developer</strong>
 								</TableCell>
 							</TableRow>
 							<TableRow>
@@ -158,9 +154,7 @@ const AboutMe: React.FC<{ myInfo: any }> = ({ myInfo }) => {
 										justifyContent: "center",
 									}}
 								>
-									<strong>
-										{myInfo.organization ? myInfo.organization : "N/A"}
-									</strong>
+									<strong>SineVoiPeo</strong>
 								</TableCell>
 							</TableRow>
 						</TableBody>

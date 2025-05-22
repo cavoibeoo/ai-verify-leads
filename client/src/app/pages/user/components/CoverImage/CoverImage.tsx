@@ -1,14 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Box, Typography, MenuItem, Button, Menu, Avatar } from "@mui/material";
+import { Box, Typography, MenuItem, Button, Menu } from "@mui/material";
 import Image from "next/image";
-import { EditUserInfo } from "@/app/pages/user/components/CoverImage/EditUserInfo/EditUserInfo";
 
-const CoverImage: React.FC<{ myInfo: any; callUpdate: () => void }> = ({
-	myInfo,
-	callUpdate,
-}) => {
+const CoverImage: React.FC = () => {
 	// Dropdown
 	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
@@ -37,6 +33,61 @@ const CoverImage: React.FC<{ myInfo: any; callUpdate: () => void }> = ({
 						}}
 						className="border-top-radius"
 					></Box>
+
+					<Box
+						sx={{
+							position: "absolute",
+							bottom: "28px",
+						}}
+						className="po-right-28"
+					>
+						<Button
+							variant="outlined"
+							onClick={handleClick}
+							aria-controls={open ? "account-menu" : undefined}
+							aria-haspopup="true"
+							aria-expanded={open ? "true" : undefined}
+							sx={{
+								color: "#fff !important",
+								textTransform: "capitalize",
+								border: "1px solid #fff",
+								padding: "8px 20px",
+							}}
+						>
+							Update Cover Photos
+						</Button>
+
+						<Menu
+							anchorEl={anchorEl}
+							id="account-menu"
+							open={open}
+							onClose={handleClose}
+							onClick={handleClose}
+							PaperProps={{
+								elevation: 0,
+
+								sx: {
+									overflow: "visible",
+									boxShadow: "0 4px 45px #0000001a",
+									mt: 0,
+									minWidth: "160px",
+
+									"& .MuiAvatar-root": {
+										width: 32,
+										height: 32,
+										ml: -0.5,
+										mr: 1,
+									},
+								},
+							}}
+							transformOrigin={{ horizontal: "right", vertical: "top" }}
+							anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+						>
+							<MenuItem>Upload Photo</MenuItem>
+							<MenuItem>Reposition</MenuItem>
+							<MenuItem>Remove</MenuItem>
+						</Menu>
+					</Box>
 				</Box>
 
 				<Box
@@ -68,16 +119,12 @@ const CoverImage: React.FC<{ myInfo: any; callUpdate: () => void }> = ({
 									width: { xs: "120px", sm: "160px" },
 								}}
 							>
-								<Avatar
-									src={myInfo.avatar || "/images/default-avatar.png"}
+								<Image
+									src="/images/avt_quang.jpg"
 									className="profile-image rounded-circle"
 									alt="profile-image"
-									sx={{
-										width: 150,
-										height: 150,
-										backgroundColor: "#fff",
-										border: "2px solid #213b65",
-									}}
+									width={240}
+									height={240}
 								/>
 
 								<Image
@@ -102,7 +149,7 @@ const CoverImage: React.FC<{ myInfo: any; callUpdate: () => void }> = ({
 										fontSize: { sx: "20px", md: "22px", lg: "24px" },
 									}}
 								>
-									{myInfo.name}
+									Duc Quang
 								</Typography>
 
 								<Typography
@@ -111,7 +158,7 @@ const CoverImage: React.FC<{ myInfo: any; callUpdate: () => void }> = ({
 										fontWeight: "500",
 									}}
 								>
-									{myInfo.jobTitle ? myInfo.jobTitle : "N/A"}
+									Web Developer
 								</Typography>
 							</Box>
 						</Box>
@@ -125,7 +172,32 @@ const CoverImage: React.FC<{ myInfo: any; callUpdate: () => void }> = ({
 							}}
 						>
 							<Box>
-								<EditUserInfo myInfo={myInfo} callUpdate={callUpdate} />
+								<Button
+									variant="outlined"
+									onClick={handleClick}
+									aria-controls={open ? "account-menu" : undefined}
+									aria-haspopup="true"
+									aria-expanded={open ? "true" : undefined}
+									sx={{
+										textTransform: "capitalize",
+										padding: "10px 28px",
+										borderRadius: "7px",
+										fontSize: "16px",
+										fontWeight: "500",
+										boxShadow: "none",
+									}}
+									className="border text-body"
+								>
+									<i
+										className="material-symbols-outlined mr-8"
+										style={{
+											fontSize: "20px",
+										}}
+									>
+										edit
+									</i>
+									Edit
+								</Button>
 
 								<Menu
 									anchorEl={anchorEl}
@@ -160,6 +232,33 @@ const CoverImage: React.FC<{ myInfo: any; callUpdate: () => void }> = ({
 							</Box>
 
 							<Box>
+								<Button
+									variant="contained"
+									onClick={handleClick}
+									aria-controls={open ? "account-menu" : undefined}
+									aria-haspopup="true"
+									aria-expanded={open ? "true" : undefined}
+									sx={{
+										textTransform: "capitalize",
+										padding: "10px 28px",
+										borderRadius: "7px",
+										fontSize: "16px",
+										fontWeight: "500",
+										boxShadow: "none",
+										color: "#fff !important",
+									}}
+								>
+									<i
+										className="material-symbols-outlined mr-8"
+										style={{
+											fontSize: "20px",
+										}}
+									>
+										share
+									</i>
+									Share
+								</Button>
+
 								<Menu
 									anchorEl={anchorEl}
 									id="account-menu"
