@@ -125,6 +125,16 @@ const processLeadEvent = async (lead) => {
                     existing.updatedAt = now;
                     existing.source = "facebook";
                     existing.nodeId = currentNode.id;
+                    existing.status = 1;
+                    existing.isVerified = {
+                        status: 0,
+                        message: "Lead updated",
+                    };
+                    existing.error = {
+                        status: false,
+                        message: "",
+                        retryCount: 0,
+                    };
                     await existing.save();
                     leadDoc = existing;
                 } else {
@@ -181,12 +191,11 @@ export const getTranscript = async (data) => {
                 stackTrace: error?.stack,
                 retryCount: lead?.error?.retryCount ? lead.error.retryCount : 0,
             };
-            lead.status = 0;
             if (lead?.error?.retryCount < 2) {
                 lead.error.retryCount += 1;
                 await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], true, true);
                 console.warn("Retrying lead...");
-            }
+            } else await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], false);
             await lead.save();
             return;
         }
