@@ -211,7 +211,7 @@ const ConnectionSelect: React.FC<ConnectionSelectProps> = ({
 	return (
 		<>
 			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel>Choose Facebook Connection</InputLabel>
+				<InputLabel required>Choose Facebook Connection</InputLabel>
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -340,7 +340,7 @@ const PageSelect: React.FC<PageSelectProps> = ({
 
 	return (
 		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel>Choose Facebook Page</InputLabel>
+			<InputLabel required>Choose Facebook Page</InputLabel>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
@@ -409,7 +409,7 @@ const FormSelect: React.FC<FormSelectProps> = ({
 
 	return (
 		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel>Choose Lead Form</InputLabel>
+			<InputLabel required>Choose Lead Form</InputLabel>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
@@ -731,7 +731,7 @@ const CalendarConnectionSelect: React.FC<CalendarConnectionSelectProps> = ({
 	return (
 		<>
 			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel>Google Calendar Connection</InputLabel>
+				<InputLabel required>Google Calendar Connection</InputLabel>
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -1185,6 +1185,45 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			updateSettings(key, parseInt(event.target.value) || 0);
 		};
 
+	const validateSettings = (): boolean => {
+		const nodeType = selectedNode.type || "default";
+		switch (nodeType) {
+			case "aiCall":
+				return (
+					!!localSettings.language &&
+					!!localSettings.introduction &&
+					Array.isArray(localSettings.questions) &&
+					localSettings.questions.length > 0 &&
+					localSettings.questions.every((q) => q && q.trim() !== "")
+				);
+			case "preVerify":
+				return (
+					Array.isArray(localSettings.criteria) &&
+					localSettings.criteria.length > 0 &&
+					localSettings.criteria.every((c: any) => c.field && c.operator)
+				);
+			case "facebookLeadAds":
+				return (
+					!!localSettings.connection &&
+					!!localSettings.pageId &&
+					!!localSettings.formId
+				);
+			case "sendWebhook":
+				return !!localSettings.webhookUrl;
+			case "googleCalendar":
+				return (
+					!!localSettings.connection &&
+					!!localSettings.calendarName &&
+					!!localSettings.eventName
+				);
+			case "getSheetLead":
+			case "exportSheetLead":
+				return !!localSettings.connection && !!localSettings.sheetUrl;
+			default:
+				return true;
+		}
+	};
+
 	const renderSettings = () => {
 		const nodeType = selectedNode.type || "default";
 
@@ -1253,6 +1292,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							value={localSettings.introduction || ""}
 							onChange={handleTextChange("introduction")}
 							placeholder="Enter introduction message"
+							required
 						/>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
@@ -1271,6 +1311,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									fullWidth
 									size="small"
 									label={`Question ${index + 1}`}
+									required
 									variant="outlined"
 									multiline
 									minRows={1}
@@ -1371,6 +1412,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							value={localSettings.eventName || ""}
 							onChange={handleTextChange("eventName")}
 							placeholder="Enter event name"
+							required
 						/>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
@@ -1783,6 +1825,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									fullWidth
 									size="small"
 									label="Field"
+									required
 									variant="outlined"
 									margin="normal"
 									multiline
@@ -1801,7 +1844,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								/>
 
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel>Type</InputLabel>
+									<InputLabel required>Type</InputLabel>
 									<Select
 										value={criterion.type || "string"}
 										onChange={(e) => {
@@ -1831,7 +1874,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								</FormControl>
 
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel>Operator</InputLabel>
+									<InputLabel required>Operator</InputLabel>
 									<Select
 										value={criterion.operator || "equals"}
 										onChange={(e) => {
@@ -2020,7 +2063,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							)
 						}
 						onClick={handleSaveChanges}
-						disabled={!hasChanges || isSaving}
+						disabled={!hasChanges || isSaving || !validateSettings()}
 					>
 						{isSaving ? "Saving..." : "Save Changes"}
 					</Button>
