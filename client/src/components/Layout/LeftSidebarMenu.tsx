@@ -14,6 +14,7 @@ import MuiAccordionSummary, {
 } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import { Box, Typography } from "@mui/material";
+import { useUserInfo } from "@/services/userServices";
 
 const Accordion = styled((props: AccordionProps) => (
 	<MuiAccordion disableGutters elevation={0} square {...props} />
@@ -54,6 +55,7 @@ interface LeftSidebarProps {
 
 const LeftSidebarMenu: React.FC<LeftSidebarProps> = ({ toggleActive }) => {
 	const pathname = usePathname();
+	const { user, loading } = useUserInfo();
 
 	const [expanded, setExpanded] = React.useState<string | false>("panel1");
 
@@ -132,6 +134,20 @@ const LeftSidebarMenu: React.FC<LeftSidebarProps> = ({ toggleActive }) => {
 									Flow
 								</Typography>
 							</Link>
+
+							{!loading && user?.role === "admin" && (
+								<Link
+									href="/pages/admin/user-management/"
+									className={`sidebar-menu-link ${
+										pathname === "/pages/admin/user-management/" ? "active" : ""
+									}`}
+								>
+									<i className="ri-user-fill"></i>
+									<Typography component={"span"} className="title">
+										Admin Site
+									</Typography>
+								</Link>
+							)}
 
 							{/* <Link
 								href="/pages/analytics/"

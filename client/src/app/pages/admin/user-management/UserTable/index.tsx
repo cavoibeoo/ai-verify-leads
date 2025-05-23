@@ -293,7 +293,6 @@ const UserTable: React.FC = () => {
 			const newStatus = currentRow.isDeleted ? false : true;
 			await updateUserStatus(currentRow.id, newStatus);
 			callUpdate();
-			toast.success("User status updated successfully");
 			handleCloseDialog();
 		}
 	};

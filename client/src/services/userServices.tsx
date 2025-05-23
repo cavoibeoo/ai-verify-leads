@@ -89,3 +89,24 @@ export const changePassword = async (data: any) => {
 		return { error: error };
 	}
 };
+
+export function useUserInfo() {
+	const [user, setUser] = useState<any>(null);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		let isMounted = true;
+		(async () => {
+			const data = await useFetchUser();
+			if (isMounted) {
+				setUser(data);
+				setLoading(false);
+			}
+		})();
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
+	return { user, loading };
+}
