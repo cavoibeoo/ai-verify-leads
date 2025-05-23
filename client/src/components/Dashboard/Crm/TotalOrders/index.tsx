@@ -140,7 +140,7 @@ const TotalOrders: React.FC = () => {
 				>
 					<Box>
 						<Typography component="span" sx={{ mb: "3px", display: "block" }}>
-							Unverified Lead
+							Unqualified Leads
 						</Typography>
 
 						<Typography

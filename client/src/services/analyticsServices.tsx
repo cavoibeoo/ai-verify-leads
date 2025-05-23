@@ -28,3 +28,17 @@ export const getLeadBySource = async (flowId: string) => {
 		return null;
 	}
 };
+
+// Lấy thông tin call analytics
+export const getCallAnalytics = async (flowId: string) => {
+	try {
+		if (!flowId) return null;
+
+		const response = await axios.get(`/analytics/callAnalytics/${flowId}`);
+		return response.data;
+	} catch (error: any) {
+		console.error("Failed to fetch call analytics:", error);
+		toast.error("Failed to fetch call analytics data!");
+		return null;
+	}
+};

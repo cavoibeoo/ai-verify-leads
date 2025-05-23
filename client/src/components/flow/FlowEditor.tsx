@@ -783,7 +783,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
 							}}
 						>
-							<LeadAnalyticsChart />
+							<LeadAnalyticsChart flowId={flowId} />
 						</Panel>
 					)}
 

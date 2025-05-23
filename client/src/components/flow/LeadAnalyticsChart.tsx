@@ -2,34 +2,64 @@ import React, { useEffect, useState } from "react";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import { Box, Paper, Typography, Grid, Divider, alpha } from "@mui/material";
+import { getCallAnalytics } from "@/services/analyticsServices";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface LeadAnalyticsChartProps {
+	flowId: string | null;
 	className?: string;
 }
 
 const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
+	flowId,
 	className,
 }) => {
 	const [isChartLoaded, setChartLoaded] = useState(false);
+	const [callData, setCallData] = useState({
+		success: 0,
+		noAnswer: 0,
+		terminate: 0,
+		decline: 0,
+		total: 0,
+	});
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		setChartLoaded(true);
 	}, []);
 
-	const mockData = {
-		successful: 9,
-		hangup: 2,
-		missed: 3,
-		totalCalls: 13,
-	};
-	const series = [mockData.successful, mockData.hangup, mockData.missed];
+	useEffect(() => {
+		const fetchData = async () => {
+			if (!flowId) return;
+			setLoading(true);
+			const data = await getCallAnalytics(flowId);
+			if (data) {
+				const total =
+					(data.success || 0) +
+					(data.noAnswer || 0) +
+					(data.terminate || 0) +
+					(data.decline || 0);
+				setCallData({
+					...data,
+					total,
+				});
+			}
+			setLoading(false);
+		};
+		fetchData();
+	}, [flowId]);
 
-	const chartColors = ["#10b981", "#f59e0b", "#ef4444"];
+	const series = [
+		callData.success,
+		callData.noAnswer,
+		callData.terminate,
+		callData.decline,
+	];
+	const chartColors = ["#10b981", "#f59e0b", "#6366f1", "#ef4444"];
 
 	const options: ApexOptions = {
-		labels: ["Successful", "Hang Up", "Missed"],
+		labels: ["Success", "No Answer", "Terminate", "Decline"],
 		colors: chartColors,
 		chart: {
 			dropShadow: {
@@ -106,7 +136,7 @@ const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
 							fontSize: "14px",
 							fontWeight: 600,
 							formatter: function () {
-								return mockData.totalCalls.toString();
+								return callData.total.toString();
 							},
 						},
 					},
@@ -183,7 +213,7 @@ const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
 			</Typography>
 
 			<Box sx={{ mt: -0.5, mb: -1 }}>
-				{isChartLoaded && (
+				{isChartLoaded && !loading && (
 					<Chart
 						options={options}
 						series={series}
@@ -196,22 +226,26 @@ const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
 
 			<Grid container spacing={2} sx={{ mt: 0.5 }}>
 				{[
+					{ label: "Success", value: callData.success, color: chartColors[0] },
 					{
-						label: "Successful",
-						value: mockData.successful,
-						color: chartColors[0],
+						label: "No Answer",
+						value: callData.noAnswer,
+						color: chartColors[1],
 					},
-					{ label: "Hang Up", value: mockData.hangup, color: chartColors[1] },
-					{ label: "Missed", value: mockData.missed, color: chartColors[2] },
+					{
+						label: "Terminate",
+						value: callData.terminate,
+						color: chartColors[2],
+					},
+					{ label: "Decline", value: callData.decline, color: chartColors[3] },
 				].map((item, index) => (
-					<Grid item xs={4} key={index}>
+					<Grid item xs={3} key={index}>
 						<Box
 							sx={{
 								display: "flex",
 								flexDirection: "column",
 								alignItems: "center",
 								justifyContent: "center",
-								px: 1,
 							}}
 						>
 							<Box
@@ -219,6 +253,7 @@ const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
 									display: "flex",
 									alignItems: "center",
 									gap: "6px",
+									alignContent: "center",
 									mb: 0.5,
 								}}
 							>
@@ -232,7 +267,7 @@ const LeadAnalyticsChart: React.FC<LeadAnalyticsChartProps> = ({
 								/>
 								<Typography
 									sx={{
-										fontSize: "0.8125rem",
+										fontSize: "0.7125rem",
 										color: (theme) => theme.palette.text.secondary,
 										fontWeight: 500,
 									}}

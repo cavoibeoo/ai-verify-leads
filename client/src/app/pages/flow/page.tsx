@@ -709,7 +709,7 @@ const FlowList: React.FC<FlowListProps> = ({
 							{/* Lead Analytics Chart - Left side */}
 							<Grid item xs={12} md={6}>
 								<Box sx={{ height: "100%" }} className="lead-analytics-chart">
-									<LeadAnalyticsChart />
+									<LeadAnalyticsChart flowId={selectedFlow?.id || null} />
 								</Box>
 							</Grid>
 
