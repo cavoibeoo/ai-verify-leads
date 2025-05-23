@@ -397,17 +397,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								edge.sourceHandle === params.sourceHandle
 							)
 					);
-				} else {
-					// Đối với các node khác, xóa tất cả kết nối từ source node
-					filteredEdges = filteredEdges.filter(
-						(edge) => edge.source !== params.source
-					);
 				}
-
-				// Luôn xóa kết nối đến target node
-				filteredEdges = filteredEdges.filter(
-					(edge) => edge.target !== params.target
-				);
 
 				// Thêm edge mới vào danh sách đã lọc
 				return [...filteredEdges, newEdge];
