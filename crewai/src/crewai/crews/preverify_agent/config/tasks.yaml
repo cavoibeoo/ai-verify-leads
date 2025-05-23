@@ -1,7 +1,7 @@
 preverify_lead:
-    description: >
-        Analyze if lead data in {lead_raw_data} meets criteria from {criteria_field}.
-        and passing if 100% of all criteria are met.
+  description: >
+    Analyze if lead data in {lead_raw_data} meets criteria from {criteria_field}.
+    and passing if 100% of all criteria are met.
 
     VERIFICATION PROCESS:
     1. Apply qualification criteria rigorously to each lead
@@ -9,20 +9,20 @@ preverify_lead:
     3. Create structured result with overall qualification status
     Note: phone has country code also consider it valid phone number.
 
-        result as JSON:
+    result as JSON:
+    {
+      "pass": boolean,
+      "criteria_results": [
         {
-          "pass": boolean,
-          "criteria_results": [
-            {
-              "criterion": "criterion_name",
-              "passed": boolean,
-              "reason": "brief explanation (<=8 words)",
-            }
-          ]
+          "criterion": "criterion_name",
+          "passed": boolean,
+          "reason": "brief explanation (<=8 words)",
         }
+      ]
+    }
 
-    expected_output: >
-        JSON format with pass/fail status and criteria results for each lead. 
-        Includes brief explanations (under 8 words) for decisions made.
+  expected_output: >
+    JSON format with pass/fail status and criteria results for each lead. 
+    Includes brief explanations (under 8 words) for decisions made.
 
-    agent: preverify_lead_agent
+  agent: preverify_lead_agent

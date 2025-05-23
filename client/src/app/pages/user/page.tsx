@@ -30,21 +30,14 @@ export default function Page() {
 	return (
 		<>
 			<Grid container columnSpacing={{ xs: 1, sm: 2, md: 2, lg: 3 }}>
-				<Grid item xs={12} md={12} lg={12} xl={9}>
+				<Grid item xs={12} md={12} lg={12} xl={12}>
 					<CoverImage myInfo={myInfo} callUpdate={callUpdate} />
 
 					<Grid container columnSpacing={{ xs: 1, sm: 2, md: 2, lg: 3 }}>
 						<Grid item xs={12} md={6} lg={6} xl={6}>
 							<AboutMe myInfo={myInfo} />
 						</Grid>
-						<Grid item xs={12} md={6} lg={6} xl={6}>
-							<Photos />
-						</Grid>
 					</Grid>
-				</Grid>
-
-				<Grid item xs={12} md={12} lg={12} xl={3}>
-					<Friends />
 				</Grid>
 			</Grid>
 		</>
