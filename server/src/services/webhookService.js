@@ -186,16 +186,19 @@ export const getTranscript = async (data) => {
             let lead = await Lead.findById(leadId);
 
             lead.error = {
-                status: true,
-                message: message,
-                stackTrace: error?.stack,
                 retryCount: lead?.error?.retryCount ? lead.error.retryCount : 0,
             };
             if (lead?.error?.retryCount < 2) {
                 lead.error.retryCount += 1;
                 await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], true, true);
                 console.warn("Retrying lead...");
-            } else await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], false);
+            } else {
+                lead.isVerified = {
+                    status: 1,
+                    message: message,
+                };
+                await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], false);
+            }
             await lead.save();
             return;
         }
