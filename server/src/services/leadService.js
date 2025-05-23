@@ -99,6 +99,11 @@ export const retryLead = async (leadId, userId) => {
             throw new ApiError(StatusCodes.NOT_FOUND, "Lead not found.");
         }
 
+        let flow = await flowService.getFlow(lead.flowId, { userId });
+        if (flow.status != 3) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, "Flow is not active.");
+        }
+
         lead.status = 1; // Reset status to 1 for retry
         lead.error = {
             status: false,
