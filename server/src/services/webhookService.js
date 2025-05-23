@@ -10,6 +10,7 @@ import { publishLead } from "./leadService.js";
 import getObjectId from "../utils/objectId.js";
 import Lead from "./../models/lead.js";
 import convertLeadData from "../utils/convertLeadData.js";
+import Flow from "../models/flow.js";
 
 export const appScript = async (userId, leads, flowId, currentNode) => {
     try {
@@ -178,12 +179,21 @@ const fetchLeadData = async (leadgenId, pageAccessToken) => {
 // --------------------------------------------------------------------
 
 export const getTranscript = async (data) => {
-    let { leadId, transcript, error, message } = data;
+    let { leadId, transcript, error, message, errorCode } = data;
     leadId = getObjectId(leadId);
     try {
         if (error == true || error == "true") {
             console.warn("Call lead error:", message);
             let lead = await Lead.findById(leadId);
+
+            //update flow call analytics
+            let flow = await Flow.findById(lead.flowId);
+            if (flow) {
+                if (errorCode == 1) flow.callAnalytics.decline += 1;
+                else if (errorCode == 2) flow.callAnalytics.noAnswer += 1;
+                else if (errorCode == 3) flow.callAnalytics.terminate += 1;
+                await flow.save();
+            }
 
             lead.error = {
                 retryCount: lead?.error?.retryCount ? lead.error.retryCount : 0,
@@ -214,8 +224,15 @@ export const getTranscript = async (data) => {
         if (transcript) {
             lead.leadData.transcript = transcript;
             let analysisResult = await qualifyLead(lead);
-
-            console.log("Analysis result: ", analysisResult);
+            let flow = await Flow.findOneAndUpdate(
+                { _id: lead.flowId },
+                {
+                    $set: {
+                        "callAnalytics.success": flow.callAnalytics.success + 1,
+                    },
+                },
+                { new: true }
+            );
             lead.isVerified.status = analysisResult.pass ? 2 : 1;
             lead.isVerified.message = analysisResult.message;
             lead.error = {

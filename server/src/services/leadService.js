@@ -9,7 +9,7 @@ import * as flowService from "./flowService.js";
 
 export const getAllLeads = async (userId) => {
     try {
-        const leads = await Lead.find({ userId: getObjectId(userId) }).sort({ createdAt: -1 });
+        const leads = await Lead.find({ userId: getObjectId(userId) }).sort({ updatedAt: -1 });
         return leads;
     } catch (error) {
         throw error;
@@ -34,7 +34,7 @@ export const getLeadByNodes = async (userId, flowId) => {
         const leads = await Lead.find({
             userId: getObjectId(userId),
             flowId: getObjectId(flowId),
-        }).sort({ createdAt: -1 });
+        }).sort({ updatedAt: -1 });
 
         let mergeNodes = [];
 

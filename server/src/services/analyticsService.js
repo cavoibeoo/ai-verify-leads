@@ -53,3 +53,15 @@ export const getLeadBySource = async (flowId, userId) => {
         throw error;
     }
 };
+
+export const getCallAnalytics = async (flowId, userId) => {
+    try {
+        let flow = await Flow.findOne({ _id: getObjectId(flowId), userId: getObjectId(userId) });
+
+        let callAnalytics = flow.callAnalytics;
+
+        return callAnalytics;
+    } catch (error) {
+        throw error;
+    }
+};
