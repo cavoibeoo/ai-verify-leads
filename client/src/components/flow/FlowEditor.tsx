@@ -189,6 +189,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const [showMiniMap, setShowMiniMap] = useState<boolean>(true);
 	const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
 	const [showLeadHistory, setShowLeadHistory] = useState<boolean>(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const fetchFlowData = useCallback(async () => {
 		if (!flowId) return;
@@ -678,6 +679,39 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		if (!showLeadHistory) setShowAnalytics(false); // Close analytics when opening lead history
 	};
 
+	const onImportClick = () => {
+		if (fileInputRef.current) {
+			fileInputRef.current.value = ""; // Reset so same file can be selected again
+			fileInputRef.current.click();
+		}
+	};
+
+	const onImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			try {
+				const text = e.target?.result as string;
+				const flowData = JSON.parse(text);
+
+				// Optionally validate flowData structure here
+
+				const typedEdges = flowData.edges.map((edge: any) => ({
+					...edge,
+					data: edge.data || { label: "Connection" },
+				}));
+
+				setNodes(flowData.nodes);
+				setEdges(typedEdges);
+			} catch (err) {
+				alert("Invalid flow file.");
+			}
+		};
+		reader.readAsText(file);
+	};
+
 	useEffect(() => {
 		fetchFlowData();
 	}, [fetchFlowData]);
@@ -692,6 +726,14 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				overflow: "hidden",
 			}}
 		>
+			<input
+				type="file"
+				accept="application/json"
+				style={{ display: "none" }}
+				ref={fileInputRef}
+				aria-label="Import flow file"
+				onChange={onImportFile}
+			/>
 			<Sidebar onDragStart={onDragStart} />
 
 			<Box ref={reactFlowWrapper} sx={{ flexGrow: 1, height: "100%" }}>
@@ -884,7 +926,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 					<Panel position="top-right">
 						<FlowToolbar
 							onSave={onSave}
-							onLoad={onLoad}
+							onLoad={onImportClick}
 							onExport={onExport}
 							onClear={onClear}
 							onToggleStatus={handleToggleStatus}
