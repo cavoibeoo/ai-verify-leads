@@ -180,14 +180,6 @@ const LeadsBySource: React.FC = () => {
 					>
 						Leads Sources
 					</Typography>
-
-					<Box>
-						<CustomDropdown
-							options={["This Week", "This Month", "This Year"]} // Need to change the options also in CustomDropdown file
-							onSelect={handleTimeFilterChange}
-							defaultLabel="This Month"
-						/>
-					</Box>
 				</Box>
 
 				{loading ? (
