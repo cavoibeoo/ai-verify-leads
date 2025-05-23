@@ -1012,8 +1012,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						},
 						{
 							field: "phone",
-							type: "phone",
-							operator: "isValid",
+							type: "string",
+							operator: "isNotEmpty",
 							value: "",
 						},
 					],
