@@ -123,7 +123,7 @@ const TotalOrders: React.FC = () => {
 		<>
 			<Card
 				sx={{
-					boxShadow: "none",
+					boxShadow: "0 4px 24px 0 rgba(34, 41, 47, 0.08)",
 					borderRadius: "7px",
 					mb: "25px",
 					padding: { xs: "18px", sm: "20px", lg: "25px" },
