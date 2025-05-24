@@ -40,14 +40,17 @@ import {
 	VisibilityOff,
 	DarkMode as DarkModeIcon,
 	LightMode as LightModeIcon,
+	Assessment as AssessmentIcon,
+	History as HistoryIcon,
 } from "@mui/icons-material";
 
 import Sidebar from "./Sidebar";
 import PropertiesPanel from "./PropertiesPanel";
 import CustomEdge from "./edges/CustomEdge";
 import FlowToolbar from "./FlowToolbar";
+import LeadAnalyticsChart from "./LeadAnalyticsChart";
+import LeadHistoryPanel from "./LeadHistoryPanel";
 import {
-	GoogleSheetsNode,
 	AICallNode,
 	CalendarNode,
 	WebhookNode,
@@ -57,9 +60,8 @@ import {
 	ConfigNode,
 	ErrorNode,
 	FacebookLeadAdsNode,
-	DeadLeadNode,
-	SheetNode,
-	ExcelNode,
+	SheetImportNode,
+	SheetExportNode,
 } from "./nodes/NodeTypes";
 import { CustomEdgeData } from "./edges/CustomEdge";
 import {
@@ -131,15 +133,13 @@ const getDarkTheme = () =>
 
 // Define node types
 const nodeTypes = {
-	googleSheets: GoogleSheetsNode,
-	sheet: SheetNode,
-	excel: ExcelNode,
+	getSheetLead: SheetImportNode,
+	exportSheetLead: SheetExportNode,
 	facebookLeadAds: FacebookLeadAdsNode,
 	aiCall: AICallNode,
 	googleCalendar: CalendarNode,
 	sendWebhook: WebhookNode,
 	condition: ConditionNode,
-	deadLead: DeadLeadNode,
 	preVerify: ConditionNode,
 	email: EmailNode,
 	sms: SMSNode,
@@ -187,6 +187,9 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const [flowName, setFlowName] = useState<string>("Untitled Flow");
 	const [flowStatus, setFlowStatus] = useState<number>(1); // Default to disabled
 	const [showMiniMap, setShowMiniMap] = useState<boolean>(true);
+	const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
+	const [showLeadHistory, setShowLeadHistory] = useState<boolean>(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const fetchFlowData = useCallback(async () => {
 		if (!flowId) return;
@@ -290,10 +293,10 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		switch (type) {
 			case "googleSheets":
 				return "Google Sheets";
-			case "sheet":
+			case "getSheetLead":
 				return "Sheet Import";
-			case "excel":
-				return "Excel Import";
+			case "exportSheetLead":
+				return "Sheet Export";
 			case "facebookLeadAds":
 				return "Facebook Lead Ads";
 			case "aiCall":
@@ -302,8 +305,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				return "Google Calendar";
 			case "sendWebhook":
 				return "Send to webhook";
-			case "deadLead":
-				return "Dead Lead";
 			case "condition":
 				return "Condition";
 			case "preVerify":
@@ -327,10 +328,10 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		switch (type) {
 			case "googleSheets":
 				return "Import leads from Google Sheets";
-			case "sheet":
+			case "getSheetLead":
 				return "Import leads from Sheet files";
-			case "excel":
-				return "Import leads from Excel files";
+			case "exportSheetLead":
+				return "Export leads to Sheet files";
 			case "facebookLeadAds":
 				return "Import leads from Facebook Lead Ads";
 			case "aiCall":
@@ -339,8 +340,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				return "Schedule appointments";
 			case "sendWebhook":
 				return "Send lead data to a webhook";
-			case "deadLead":
-				return "Handle dead leads in the flow";
 			case "condition":
 				return "Branch based on conditions";
 			case "preVerify":
@@ -366,7 +365,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 			const isMultiOutputNode =
 				sourceNodeId === "condition" ||
 				sourceNodeId === "preverify" ||
-				sourceNodeId === "deadlead" ||
 				sourceNodeId === "aicall";
 
 			let edgeLabel = "";
@@ -400,17 +398,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								edge.sourceHandle === params.sourceHandle
 							)
 					);
-				} else {
-					// Đối với các node khác, xóa tất cả kết nối từ source node
-					filteredEdges = filteredEdges.filter(
-						(edge) => edge.source !== params.source
-					);
 				}
-
-				// Luôn xóa kết nối đến target node
-				filteredEdges = filteredEdges.filter(
-					(edge) => edge.target !== params.target
-				);
 
 				// Thêm edge mới vào danh sách đã lọc
 				return [...filteredEdges, newEdge];
@@ -514,20 +502,16 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								duration: 30,
 							};
 							break;
-						case "sheet":
+						case "getSheetLead":
 							defaultSettings = {
-								filePath: "",
-								sheetName: "",
-								sheetType: "csv",
-								delimiter: ",",
-								hasHeader: true,
+								sheetUrl: "",
+								connection: "",
 							};
 							break;
-						case "excel":
+						case "exportSheetLead":
 							defaultSettings = {
-								filePath: "",
-								sheetName: "",
-								hasHeader: true,
+								sheetUrl: "",
+								connection: "",
 							};
 							break;
 						case "preVerify":
@@ -612,7 +596,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 						setLoading(false);
 					});
 			} else {
-				// Tạo flow mới
 				const newFlowData = {
 					name: flowName,
 					nodeData: flowData,
@@ -636,14 +619,12 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 		}
 	}, [reactFlowInstance, flowId, flowName]);
 
-	// Load a saved flow
 	const onLoad = useCallback(() => {
 		const savedFlow = localStorage.getItem("flow-data");
 		if (savedFlow) {
 			try {
 				const flowData = JSON.parse(savedFlow) as FlowData;
 
-				// Ensure edges have the correct data format
 				const typedEdges = flowData.edges.map((edge) => {
 					return {
 						...edge,
@@ -653,14 +634,10 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 
 				setNodes(flowData.nodes);
 				setEdges(typedEdges);
-
-				// MUI toast equivalent will be added
 			} catch (error) {
 				console.error("Error loading flow:", error);
-				// MUI toast equivalent will be added
 			}
 		} else {
-			// MUI toast equivalent will be added
 		}
 	}, [setNodes, setEdges]);
 
@@ -678,30 +655,61 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
-
-			// toast({
-			//   title: 'Flow Exported',
-			//   description: 'Your flow has been exported as JSON.',
-			//   variant: 'default',
-			// });
 		}
 	}, [reactFlowInstance]);
 
-	// Clear the current flow
 	const onClear = useCallback(() => {
 		setNodes([]);
 		setEdges([]);
 		setSelectedNode(null);
 		setShowPropertiesPanel(false);
-		// toast({
-		//   title: 'Flow Cleared',
-		//   description: 'Your flow has been cleared.',
-		//   variant: 'default',
-		// });
 	}, [setNodes, setEdges]);
 
 	const toggleMiniMap = () => {
 		setShowMiniMap(!showMiniMap);
+	};
+
+	const toggleAnalytics = () => {
+		setShowAnalytics(!showAnalytics);
+		if (!showAnalytics) setShowLeadHistory(false); // Close lead history when opening analytics
+	};
+
+	const toggleLeadHistory = () => {
+		setShowLeadHistory(!showLeadHistory);
+		if (!showLeadHistory) setShowAnalytics(false); // Close analytics when opening lead history
+	};
+
+	const onImportClick = () => {
+		if (fileInputRef.current) {
+			fileInputRef.current.value = ""; // Reset so same file can be selected again
+			fileInputRef.current.click();
+		}
+	};
+
+	const onImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			try {
+				const text = e.target?.result as string;
+				const flowData = JSON.parse(text);
+
+				// Optionally validate flowData structure here
+
+				const typedEdges = flowData.edges.map((edge: any) => ({
+					...edge,
+					data: edge.data || { label: "Connection" },
+				}));
+
+				setNodes(flowData.nodes);
+				setEdges(typedEdges);
+			} catch (err) {
+				alert("Invalid flow file.");
+			}
+		};
+		reader.readAsText(file);
 	};
 
 	useEffect(() => {
@@ -718,10 +726,16 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				overflow: "hidden",
 			}}
 		>
-			{/* Sidebar with node types */}
+			<input
+				type="file"
+				accept="application/json"
+				style={{ display: "none" }}
+				ref={fileInputRef}
+				aria-label="Import flow file"
+				onChange={onImportFile}
+			/>
 			<Sidebar onDragStart={onDragStart} />
 
-			{/* Flow editor */}
 			<Box ref={reactFlowWrapper} sx={{ flexGrow: 1, height: "100%" }}>
 				<ReactFlow
 					nodes={nodes}
@@ -761,9 +775,9 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 								switch (node.type) {
 									case "googleSheets":
 										return "#0F9D58";
-									case "sheet":
+									case "getSheetLead":
 										return "#16a34a"; // Green
-									case "excel":
+									case "exportSheetLead":
 										return "#217346"; // Excel green
 									case "facebookLeadAds":
 										return "#1877f2";
@@ -773,8 +787,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 										return "#4285f4";
 									case "sendWebhook":
 										return "#8b5cf6";
-									case "deadLead":
-										return "#ef4444";
 									case "preVerify":
 										return "#f59e0b";
 									default:
@@ -789,41 +801,132 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 						/>
 					)}
 
-					{/* Toggle MiniMap Button */}
+					{/* Lead Analytics Panel */}
+					{showAnalytics && (
+						<Panel
+							position="top-left"
+							style={{
+								width: 400,
+								margin: 20,
+								padding: 0,
+								borderRadius: 12,
+								overflow: "hidden",
+								backdropFilter: "blur(8px)",
+								boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+							}}
+						>
+							<LeadAnalyticsChart flowId={flowId} />
+						</Panel>
+					)}
+
+					{/* Lead History Panel */}
+					{showLeadHistory && (
+						<Panel
+							position="top-left"
+							style={{
+								width: 700,
+								margin: 20,
+								padding: 0,
+								borderRadius: 12,
+								overflow: "hidden",
+								backdropFilter: "blur(8px)",
+								boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+								maxHeight: "60vh",
+							}}
+						>
+							<LeadHistoryPanel flowId={flowId} />
+						</Panel>
+					)}
+
+					{/* Toggle buttons grouped in bottom-right */}
 					<Panel
 						position="bottom-right"
 						style={{ marginBottom: 140, marginRight: 20 }}
 					>
-						<Tooltip
-							title={showMiniMap ? "Hide MiniMap" : "Show MiniMap"}
-							placement="left"
-						>
-							<IconButton
-								onClick={toggleMiniMap}
-								className="lead-board"
-								sx={{
-									backdropFilter: "blur(12px)",
-									borderRadius: "10px",
-									width: "40px",
-									height: "40px",
-									"&:hover": {
-										boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
-									},
-								}}
+						<Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+							{/* Analytics Toggle Button */}
+							<Tooltip
+								title={
+									showAnalytics ? "Hide Call Analytics" : "Show Call Analytics"
+								}
+								placement="left"
 							>
-								{showMiniMap ? (
-									<VisibilityOff color="primary" />
-								) : (
-									<MapIcon color="primary" />
-								)}
-							</IconButton>
-						</Tooltip>
+								<IconButton
+									onClick={toggleAnalytics}
+									sx={{
+										backdropFilter: "blur(12px)",
+										borderRadius: "10px",
+										width: "40px",
+										height: "40px",
+										"&:hover": {
+											boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+										},
+										bgcolor: showAnalytics
+											? "primary.main"
+											: "background.paper",
+										color: showAnalytics ? "white" : "primary.main",
+									}}
+								>
+									<AssessmentIcon />
+								</IconButton>
+							</Tooltip>
+
+							{/* Lead History Toggle Button */}
+							<Tooltip
+								title={
+									showLeadHistory ? "Hide Lead History" : "Show Lead History"
+								}
+								placement="left"
+							>
+								<IconButton
+									onClick={toggleLeadHistory}
+									sx={{
+										backdropFilter: "blur(12px)",
+										borderRadius: "10px",
+										width: "40px",
+										height: "40px",
+										"&:hover": {
+											boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+										},
+										bgcolor: showLeadHistory
+											? "primary.main"
+											: "background.paper",
+										color: showLeadHistory ? "white" : "primary.main",
+									}}
+								>
+									<HistoryIcon />
+								</IconButton>
+							</Tooltip>
+
+							{/* MiniMap Toggle Button */}
+							<Tooltip
+								title={showMiniMap ? "Hide MiniMap" : "Show MiniMap"}
+								placement="left"
+							>
+								<IconButton
+									onClick={toggleMiniMap}
+									sx={{
+										backdropFilter: "blur(12px)",
+										borderRadius: "10px",
+										width: "40px",
+										height: "40px",
+										"&:hover": {
+											boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+										},
+										bgcolor: showMiniMap ? "primary.main" : "background.paper",
+										color: showMiniMap ? "white" : "primary.main",
+									}}
+								>
+									<MapIcon />
+								</IconButton>
+							</Tooltip>
+						</Box>
 					</Panel>
 
 					<Panel position="top-right">
 						<FlowToolbar
 							onSave={onSave}
-							onLoad={onLoad}
+							onLoad={onImportClick}
 							onExport={onExport}
 							onClear={onClear}
 							onToggleStatus={handleToggleStatus}
@@ -846,7 +949,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 				/>
 			)}
 
-			{/* Loading indicator */}
 			<Backdrop
 				sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
 				open={loading}
@@ -857,7 +959,6 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 	);
 };
 
-// Wrap the component with ReactFlowProvider and ThemeProvider
 const FlowEditor: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const { isDarkMode } = useTheme();
 	const theme = isDarkMode ? getDarkTheme() : getLightTheme();

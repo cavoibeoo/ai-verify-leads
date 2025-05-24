@@ -1,14 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import FileWriterTool
 import json
 from crewai_tools import ScrapeWebsiteTool
-
-file_writer_tool = FileWriterTool(
-    filename="scraping_result.txt",
-    directory="agent_webscraper",
-)
-
 
 
 @CrewBase
@@ -36,7 +29,6 @@ class WebScraperCrew:
     def criteria_analyzer_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["criteria_analyzer_agent"],
-            tools=[file_writer_tool],
         )
 
     @task
@@ -73,14 +65,16 @@ class WebScraper:
                 }
             )
 
+            if hasattr(result, 'raw_output'):
+                result_str = result.raw_output
+            else:
+                result_str = str(result)
+                
             try:
-                    result_json = json.loads(result)
-                    return result_json
-            except (json.JSONDecodeError) as e:
-                return {
-                    "error": "Failed to parse results",
-                    "message": str(e)
-                }
+                result_json = json.loads(result_str)
+                return result_json
+            except json.JSONDecodeError:
+                return {"result": result_str}
 
         except Exception as e:
             return {

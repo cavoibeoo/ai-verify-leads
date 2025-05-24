@@ -30,7 +30,7 @@ class BaseTaskHandler(Task):
                 if retval.get("isPublish", False):
                     response = requests.post("http://127.0.0.1:3001/api/lead/publish", json={
                         "userId": data['userId'],
-                        "leadId": data['leadId'],
+                        "leadIds": [data['leadId']],
                         "result": retval["result"],
                         "isRetry": False,
                     })

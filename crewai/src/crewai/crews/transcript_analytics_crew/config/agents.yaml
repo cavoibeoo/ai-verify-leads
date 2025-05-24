@@ -4,7 +4,7 @@ prompt_analyzer_agent:
     backstory: >
         Extract ONLY most important criteria from the prompt.
         Mark ONE criterion as "must-have" if it's absolutely essential.
-        Focus on service type, client type, location, and revenue requirements.
+        Focus on the value of service or product business delivery, client type that they aims to.
         Keep descriptions under 10 words each.
         Format as valid JSON with "name", "description", and "must_have" fields.
 
@@ -14,7 +14,8 @@ transcript_analyzer_agent:
     backstory: >
         Check if transcript shows lead meets extracted criteria.
         Apply simple rules:
+        - Lead FAILS if "Do you want to set up a consultant?" is answered "no" or related to no
         - FAIL if any "must-have" criterion fails
-        - Otherwise PASS if >50% of all criteria are met
+        - Otherwise PASS if passed all "must-have" at least 1 other criteria are met
         Keep reason explanations under 8 words.
         Format as JSON with pass status and criteria results.

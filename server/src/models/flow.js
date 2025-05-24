@@ -26,6 +26,24 @@ const FlowSchema = mongoose.Schema(
         routeData: {
             type: mongoose.Schema.Types.Mixed,
         },
+        callAnalytics: {
+            success: {
+                type: Number,
+                default: 0,
+            },
+            decline: {
+                type: Number,
+                default: 0,
+            },
+            noAnswer: {
+                type: Number,
+                default: 0,
+            },
+            terminate: {
+                type: Number,
+                default: 0,
+            },
+        },
     },
     { timestamps: true }
 );

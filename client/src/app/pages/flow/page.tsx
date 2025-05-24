@@ -16,6 +16,8 @@ import {
 	CardContent,
 	CircularProgress,
 	CardActionArea,
+	Stack,
+	DialogContentText,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Switch from "@mui/material/Switch";
@@ -55,6 +57,22 @@ import {
 	deleteFlow,
 	getFlowById,
 } from "@/services/flowServices";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import InsightsIcon from "@mui/icons-material/Insights";
+import LinearProgress from "@mui/material/LinearProgress";
+import LeadAnalyticsChart from "@/components/flow/LeadAnalyticsChart";
+import { fetchLeadsByNodes } from "@/services/leadServices";
+import { Lead, LeadStatus, Node } from "@/type";
+import Avatar from "@mui/material/Avatar";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import List from "@mui/material/List";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Badge from "@mui/material/Badge";
+import CheckCircle from "@mui/icons-material/CheckCircle";
+import { AccessTime } from "@mui/icons-material";
 
 const StyledCard = styled(Card)(({ theme }) => ({
 	transition: "all 0.3s ease",
@@ -147,6 +165,40 @@ interface FlowListProps {
 	searchTerm: string;
 }
 
+const getNodeTypeFromId = (nodeId: string): string => {
+	if (!nodeId) return "default";
+
+	const basePart = nodeId.split("_")[0]?.toLowerCase() || nodeId.toLowerCase();
+
+	if (basePart.includes("email")) return "email";
+	if (basePart.includes("sms")) return "sms";
+	if (basePart.includes("facebook")) return "facebookLeadAds";
+	if (basePart.includes("getsheetlead")) return "googleSheets";
+	if (basePart.includes("exportsheetlead")) return "googleSheets";
+	if (basePart.includes("google") && basePart.includes("calendar"))
+		return "googleCalendar";
+	if (basePart.includes("webhook")) return "sendWebhook";
+	if (basePart.includes("deadlead")) return "deadLead";
+	if (basePart.includes("preverify") || basePart.includes("verify"))
+		return "preVerify";
+	if (basePart.includes("aicall") || basePart.includes("call")) return "aiCall";
+	if (basePart.includes("delay") || basePart.includes("config"))
+		return "config";
+	if (basePart.includes("condition")) return "condition";
+
+	return basePart;
+};
+
+const formatNodeType = (nodeType: string): string => {
+	if (!nodeType) return "Unknown";
+
+	const parts = nodeType
+		.split(/(?=[A-Z])|_/)
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase());
+
+	return parts.join(" ");
+};
+
 const FlowList: React.FC<FlowListProps> = ({
 	flows,
 	activeFlowId,
@@ -158,6 +210,20 @@ const FlowList: React.FC<FlowListProps> = ({
 	const [selectedFlow, setSelectedFlow] = useState<Flow | null>(null);
 	const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 	const [dialogAction, setDialogAction] = useState<string>("");
+	const [analyticsDialogOpen, setAnalyticsDialogOpen] =
+		useState<boolean>(false);
+	const [nodeData, setNodeData] = useState<Node[]>([]);
+	const [selectedNodeTab, setSelectedNodeTab] = useState<number>(0);
+	const [loadingAnalytics, setLoadingAnalytics] = useState<boolean>(false);
+	const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
+	const [nodeTypeData, setNodeTypeData] = useState<
+		{
+			label: string;
+			type: string;
+			leads: Lead[];
+			count: number;
+		}[]
+	>([]);
 
 	const filteredFlows = flows.filter((flow) =>
 		flow.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -181,6 +247,178 @@ const FlowList: React.FC<FlowListProps> = ({
 
 	const handleDialogClose = () => {
 		setDialogOpen(false);
+	};
+
+	const handleAnalyticsOpen = async (
+		event: React.MouseEvent<HTMLElement>,
+		flow: Flow
+	) => {
+		event.stopPropagation();
+		setSelectedFlow(flow);
+		setAnalyticsDialogOpen(true);
+		setSelectedNodeTab(0);
+
+		setLoadingAnalytics(true);
+		try {
+			const nodesData = await fetchLeadsByNodes(flow.id);
+			if (nodesData && Array.isArray(nodesData)) {
+				setNodeData(nodesData);
+
+				const leadsByNodeType: Record<
+					string,
+					{ leads: Lead[]; label: string }
+				> = {};
+
+				const leadsByCurrentNode: Record<
+					string,
+					{ leads: Lead[]; label: string; type: string }
+				> = {};
+
+				nodesData.forEach((node) => {
+					const nodeType = node.type.split("_")[0];
+
+					if (!leadsByNodeType[nodeType]) {
+						leadsByNodeType[nodeType] = {
+							leads: [],
+							label: node.label || formatNodeType(nodeType),
+						};
+					}
+
+					if (node.leads && Array.isArray(node.leads)) {
+						leadsByNodeType[nodeType].leads.push(...node.leads);
+						node.leads.forEach((lead: Lead) => {
+							const currentNodeType = getNodeTypeFromId(lead.nodeId);
+
+							if (!leadsByCurrentNode[currentNodeType]) {
+								leadsByCurrentNode[currentNodeType] = {
+									leads: [],
+									label: formatNodeType(currentNodeType),
+									type: currentNodeType,
+								};
+							}
+
+							leadsByCurrentNode[currentNodeType].leads.push(lead);
+						});
+					}
+				});
+
+				const groupedByNodeType = Object.keys(leadsByNodeType).map((type) => ({
+					type,
+					label: leadsByNodeType[type].label,
+					leads: leadsByNodeType[type].leads,
+					count: leadsByNodeType[type].leads.length,
+				}));
+
+				const groupedByCurrentNode = Object.keys(leadsByCurrentNode).map(
+					(type) => ({
+						type,
+						label: leadsByCurrentNode[type].label,
+						leads: leadsByCurrentNode[type].leads,
+						count: leadsByCurrentNode[type].leads.length,
+					})
+				);
+
+				groupedByNodeType.sort((a, b) => b.count - a.count);
+				groupedByCurrentNode.sort((a, b) => b.count - a.count);
+
+				setNodeTypeData(groupedByCurrentNode);
+
+				const allLeads: Lead[] = [];
+				groupedByCurrentNode.forEach((group) => {
+					allLeads.push(...group.leads);
+				});
+
+				const sortedLeads = allLeads.sort(
+					(a, b) =>
+						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				);
+
+				setFilteredLeads(sortedLeads.slice(0, 10));
+			}
+		} catch (error) {
+			console.error("Error fetching lead data for analytics:", error);
+		} finally {
+			setLoadingAnalytics(false);
+		}
+	};
+
+	const handleAnalyticsClose = () => {
+		setAnalyticsDialogOpen(false);
+	};
+
+	const handleNodeTabChange = (
+		event: React.SyntheticEvent,
+		newValue: number
+	) => {
+		if (newValue === 0 || (newValue > 0 && newValue <= nodeTypeData.length)) {
+			setSelectedNodeTab(newValue);
+
+			if (newValue === 0) {
+				const allLeads: Lead[] = [];
+				nodeTypeData.forEach((nodeType) => {
+					allLeads.push(...nodeType.leads);
+				});
+				const sortedLeads = allLeads.sort(
+					(a, b) =>
+						new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				);
+				setFilteredLeads(sortedLeads.slice(0, 10));
+			} else if (nodeTypeData[newValue - 1]) {
+				const nodeTypeLeads = nodeTypeData[newValue - 1].leads || [];
+				setFilteredLeads(
+					nodeTypeLeads
+						.sort(
+							(a, b) =>
+								new Date(b.createdAt).getTime() -
+								new Date(a.createdAt).getTime()
+						)
+						.slice(0, 10)
+				);
+			}
+		}
+	};
+
+	const getStatusInfo = (status: number) => {
+		switch (status) {
+			case LeadStatus.Success:
+				return {
+					icon: <CheckCircle sx={{ color: "#10b981" }} />,
+					color: "#10b981",
+					label: "Successful",
+				};
+			case LeadStatus.Error:
+				return {
+					icon: <ErrorOutline sx={{ color: "#ef4444" }} />,
+					color: "#ef4444",
+					label: "Error",
+				};
+			case LeadStatus.InProgress:
+			case LeadStatus.Processing:
+				return {
+					icon: <AccessTime sx={{ color: "#f59e0b" }} />,
+					color: "#f59e0b",
+					label: "Processing",
+				};
+			default:
+				return {
+					icon: <AddIcon sx={{ color: "#64748b" }} />,
+					color: "#64748b",
+					label: "Unknown",
+				};
+		}
+	};
+
+	const formatTime = (dateString: string) => {
+		try {
+			const date = new Date(dateString);
+			return (
+				date.toLocaleDateString() +
+				", " +
+				date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+			);
+		} catch (e) {
+			return "Invalid date";
+		}
 	};
 
 	const handleConfirmAction = async () => {
@@ -264,6 +502,15 @@ const FlowList: React.FC<FlowListProps> = ({
 										}}
 									/>
 									<Box sx={{ display: "flex", alignItems: "center" }}>
+										<Tooltip title="View Flow Analytics">
+											<IconButton
+												size="small"
+												onClick={(event) => handleAnalyticsOpen(event, flow)}
+												sx={{ mr: 1 }}
+											>
+												<InsightsIcon fontSize="small" />
+											</IconButton>
+										</Tooltip>
 										<Box sx={{ display: "inline-flex", mr: 0.5 }}>
 											<Tooltip
 												title={
@@ -422,6 +669,431 @@ const FlowList: React.FC<FlowListProps> = ({
 					</Grid>
 				))}
 			</Grid>
+
+			{/* Analytics Dialog */}
+			<Dialog
+				open={analyticsDialogOpen}
+				onClose={handleAnalyticsClose}
+				aria-labelledby="analytics-dialog-title"
+				maxWidth="md"
+				fullWidth
+				PaperProps={{
+					sx: {
+						borderRadius: "12px",
+						boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+						overflow: "hidden",
+					},
+				}}
+			>
+				<DialogTitle
+					id="analytics-dialog-title"
+					sx={{
+						fontSize: "1.25rem",
+						fontWeight: 600,
+						display: "flex",
+						alignItems: "center",
+						gap: 1,
+					}}
+				>
+					<InsightsIcon color="primary" />
+					{selectedFlow?.name} Analytics
+				</DialogTitle>
+				<DialogContent>
+					<Box sx={{ py: 2 }}>
+						<DialogContentText sx={{ mb: 3 }}>
+							Overview of flow performance and lead metrics
+						</DialogContentText>
+
+						{/* Analytics Dashboard */}
+						<Grid container spacing={3}>
+							{/* Lead Analytics Chart - Left side */}
+							<Grid item xs={12} md={6}>
+								<Box sx={{ height: "100%" }} className="lead-analytics-chart">
+									<LeadAnalyticsChart flowId={selectedFlow?.id || null} />
+								</Box>
+							</Grid>
+
+							{/* Node Type Lead Counts - Right side */}
+							<Grid item xs={12} md={6}>
+								<Paper
+									elevation={0}
+									sx={{
+										p: 2,
+										borderRadius: 2,
+										border: "1px solid",
+										borderColor: "divider",
+										height: "100%",
+									}}
+								>
+									<Typography variant="h6" sx={{ mb: 2, fontSize: "1rem" }}>
+										Leads by Current Node
+									</Typography>
+
+									{loadingAnalytics ? (
+										<Box
+											sx={{ display: "flex", justifyContent: "center", my: 4 }}
+										>
+											<CircularProgress size={28} />
+										</Box>
+									) : nodeTypeData.length === 0 ? (
+										<Box
+											sx={{
+												textAlign: "center",
+												my: 4,
+												color: "text.secondary",
+											}}
+										>
+											<Typography component="div" variant="body2">
+												No lead data available
+											</Typography>
+										</Box>
+									) : (
+										<Grid container spacing={2}>
+											{nodeTypeData.map((group, index) => {
+												const nodeColor = getNodeColor(group.type);
+												const leadCount = group.count;
+
+												return (
+													<Grid item xs={6} key={group.type}>
+														<Box
+															sx={{
+																display: "flex",
+																alignItems: "center",
+																p: 1.5,
+																borderRadius: 2,
+																border: "1px solid",
+																borderColor: "divider",
+																"&:hover": {
+																	bgcolor: alpha(nodeColor, 0.08),
+																	cursor: "pointer",
+																},
+																...(selectedNodeTab === index + 1 && {
+																	bgcolor: alpha(nodeColor, 0.12),
+																	borderColor: alpha(nodeColor, 0.3),
+																}),
+															}}
+															onClick={() =>
+																handleNodeTabChange(
+																	{} as React.SyntheticEvent,
+																	index + 1
+																)
+															}
+														>
+															<Box
+																sx={{
+																	width: 36,
+																	height: 36,
+																	borderRadius: "50%",
+																	bgcolor: alpha(nodeColor, 0.2),
+																	display: "flex",
+																	alignItems: "center",
+																	justifyContent: "center",
+																	mr: 1.5,
+																	color: nodeColor,
+																}}
+															>
+																{getNodeIcon(group.type)}
+															</Box>
+															<Box>
+																<Typography variant="body2" fontWeight={500}>
+																	{group.label}
+																</Typography>
+																<Typography
+																	variant="caption"
+																	color="text.secondary"
+																>
+																	{leadCount}{" "}
+																	{leadCount === 1 ? "lead" : "leads"}
+																</Typography>
+															</Box>
+														</Box>
+													</Grid>
+												);
+											})}
+										</Grid>
+									)}
+								</Paper>
+							</Grid>
+
+							{/* Node Lead List - Bottom section */}
+							<Grid item xs={12}>
+								<Paper
+									elevation={0}
+									sx={{
+										p: 2,
+										borderRadius: 2,
+										border: "1px solid",
+										borderColor: "divider",
+									}}
+								>
+									{/* Filter tabs */}
+									<Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+										<Tabs
+											value={
+												nodeTypeData.length === 0
+													? 0
+													: selectedNodeTab > nodeTypeData.length
+													? 0
+													: selectedNodeTab
+											}
+											onChange={handleNodeTabChange}
+											variant="scrollable"
+											scrollButtons="auto"
+											sx={{
+												minHeight: 36,
+												"& .MuiTab-root": {
+													minHeight: 36,
+													py: 0.5,
+													px: 1.5,
+													fontSize: "0.75rem",
+												},
+											}}
+										>
+											<Tab
+												label={
+													<Box sx={{ display: "flex", alignItems: "center" }}>
+														<Badge
+															badgeContent={nodeTypeData.reduce(
+																(sum, group) => sum + group.count,
+																0
+															)}
+															color="primary"
+															max={99}
+															sx={{
+																"& .MuiBadge-badge": {
+																	fontSize: "0.65rem",
+																	height: 16,
+																	minWidth: 16,
+																},
+															}}
+														>
+															<Box
+																component="span"
+																sx={{ fontSize: "0.75rem" }}
+															>
+																All Nodes
+															</Box>
+														</Badge>
+													</Box>
+												}
+												sx={{ textTransform: "none" }}
+											/>
+
+											{nodeTypeData.map((group, index) => {
+												const count = group.count;
+												const nodeColor = getNodeColor(group.type);
+
+												return (
+													<Tab
+														key={group.type}
+														label={
+															<Box
+																sx={{ display: "flex", alignItems: "center" }}
+															>
+																<Badge
+																	badgeContent={count}
+																	color="primary"
+																	max={99}
+																	sx={{
+																		"& .MuiBadge-badge": {
+																			fontSize: "0.65rem",
+																			height: 16,
+																			minWidth: 16,
+																		},
+																	}}
+																>
+																	<Box
+																		sx={{
+																			display: "flex",
+																			alignItems: "center",
+																		}}
+																	>
+																		<Box
+																			sx={{
+																				width: 8,
+																				height: 8,
+																				borderRadius: "50%",
+																				bgcolor: nodeColor,
+																				mr: 0.75,
+																			}}
+																		/>
+																		<Box
+																			component="span"
+																			sx={{ fontSize: "0.75rem" }}
+																		>
+																			{group.label}
+																		</Box>
+																	</Box>
+																</Badge>
+															</Box>
+														}
+														sx={{ textTransform: "none" }}
+													/>
+												);
+											})}
+										</Tabs>
+									</Box>
+
+									{/* Lead List */}
+									{loadingAnalytics ? (
+										<Box
+											sx={{ display: "flex", justifyContent: "center", my: 4 }}
+										>
+											<CircularProgress size={28} />
+										</Box>
+									) : filteredLeads.length === 0 ? (
+										<Box
+											sx={{
+												textAlign: "center",
+												my: 4,
+												color: "text.secondary",
+											}}
+										>
+											<Typography component="div" variant="body2">
+												No lead data available
+											</Typography>
+										</Box>
+									) : (
+										<List sx={{ p: 0, maxHeight: 300, overflow: "auto" }}>
+											{filteredLeads.map((lead, index) => {
+												const statusInfo = getStatusInfo(lead.status);
+												return (
+													<React.Fragment key={lead._id.toString()}>
+														<ListItem
+															alignItems="flex-start"
+															sx={{
+																px: 1,
+																py: 1,
+																"&:hover": {
+																	bgcolor: (theme) =>
+																		alpha(theme.palette.primary.main, 0.04),
+																	borderRadius: 1,
+																},
+															}}
+														>
+															<ListItemAvatar sx={{ minWidth: 42 }}>
+																<Avatar
+																	sx={{
+																		width: 32,
+																		height: 32,
+																		bgcolor: alpha(statusInfo.color, 0.12),
+																		color: statusInfo.color,
+																	}}
+																>
+																	{statusInfo.icon}
+																</Avatar>
+															</ListItemAvatar>
+															<ListItemText
+																primaryTypographyProps={{ component: "div" }}
+																secondaryTypographyProps={{ component: "div" }}
+																primary={
+																	<Box
+																		sx={{
+																			display: "flex",
+																			alignItems: "center",
+																			mb: 0.5,
+																		}}
+																	>
+																		<Typography
+																			variant="body2"
+																			fontWeight={500}
+																			component="span"
+																			sx={{ mr: 1 }}
+																		>
+																			{lead.leadData.full_name ||
+																				lead.leadData.name ||
+																				"Unknown"}
+																		</Typography>
+																		<Chip
+																			label={statusInfo.label}
+																			size="small"
+																			sx={{
+																				height: 20,
+																				fontSize: "0.7rem",
+																				bgcolor: alpha(statusInfo.color, 0.12),
+																				color: statusInfo.color,
+																				ml: "auto",
+																			}}
+																		/>
+																	</Box>
+																}
+																secondary={
+																	<Box component="div">
+																		<Typography
+																			component="div"
+																			variant="body2"
+																			color="text.secondary"
+																			sx={{ fontSize: "0.75rem", mb: 0.5 }}
+																		>
+																			{lead.leadData.email ||
+																				lead.leadData.phone ||
+																				lead.source ||
+																				"No contact info"}
+																		</Typography>
+
+																		<Box
+																			sx={{
+																				display: "flex",
+																				justifyContent: "space-between",
+																			}}
+																		>
+																			<Typography
+																				component="span"
+																				variant="caption"
+																				color="text.secondary"
+																				sx={{ fontSize: "0.7rem" }}
+																			>
+																				{formatTime(lead.createdAt)}
+																			</Typography>
+
+																			{lead.source && (
+																				<Typography
+																					component="span"
+																					variant="caption"
+																					sx={{
+																						fontSize: "0.7rem",
+																						color: "text.secondary",
+																					}}
+																				>
+																					Source: {lead.source}
+																				</Typography>
+																			)}
+																		</Box>
+																	</Box>
+																}
+															/>
+														</ListItem>
+														{index < filteredLeads.length - 1 && (
+															<Divider
+																variant="inset"
+																component="li"
+																sx={{ opacity: 0.5 }}
+															/>
+														)}
+													</React.Fragment>
+												);
+											})}
+										</List>
+									)}
+								</Paper>
+							</Grid>
+						</Grid>
+					</Box>
+				</DialogContent>
+				<DialogActions sx={{ padding: "16px 24px" }}>
+					<Button
+						onClick={handleAnalyticsClose}
+						variant="outlined"
+						sx={{
+							textTransform: "none",
+							borderRadius: "8px",
+							px: 2,
+						}}
+					>
+						Close
+					</Button>
+				</DialogActions>
+			</Dialog>
 
 			<Menu
 				id="simple-menu"
@@ -731,26 +1403,31 @@ const ScenarioPage: React.FC = () => {
 				<Box
 					sx={{
 						display: "flex",
-						justifyContent: "space-between",
 						alignItems: "center",
 						mb: 3,
 						flexWrap: "wrap",
 						gap: 2,
 					}}
 				>
+					<Box
+						sx={{
+							display: "flex",
+							gap: 1,
+							alignItems: "center",
+							ml: "auto",
+						}}
+					>
+						<IconButton size="small" title="Search leads">
+							<SearchIcon />
+						</IconButton>
+					</Box>
 					<SearchTextField
 						placeholder="Search scenarios..."
 						variant="outlined"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						InputProps={{
-							startAdornment: (
-								<InputAdornment position="start">
-									<SearchIcon color="action" />
-								</InputAdornment>
-							),
-						}}
 						size="small"
+						className="white-text"
 						sx={{ flexGrow: 1, maxWidth: { xs: "100%", sm: 320 } }}
 					/>
 

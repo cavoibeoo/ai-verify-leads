@@ -10,6 +10,7 @@ import { publishLead } from "./leadService.js";
 import getObjectId from "../utils/objectId.js";
 import Lead from "./../models/lead.js";
 import convertLeadData from "../utils/convertLeadData.js";
+import Flow from "../models/flow.js";
 
 export const appScript = async (userId, leads, flowId, currentNode) => {
     try {
@@ -98,16 +99,61 @@ const processLeadEvent = async (lead) => {
                 page.access_token
             );
 
-            let importedLeads = new Lead({
-                userId: getObjectId(flow.userId),
-                flowId: getObjectId(flow._id),
-                leadData: convertedData,
-                nodeId: currentNode.id,
-                source: "facebook",
+            const email = convertedData.email?.trim().toLowerCase();
+            const phone = convertedData.phone?.replace(/\D/g, "");
+
+            const existing = await Lead.findOne({
+                $or: [{ "leadData.email": email }, { "leadData.phone": phone }],
+                userId: flow.userId,
+                flowId: flow._id,
             });
 
-            await importedLeads.save();
-            await publishLead(flow.userId, flow._id, currentNode.id, [importedLeads]);
+            let leadDoc;
+
+            const now = new Date();
+
+            const shouldUpdate = (existing) => {
+                const status = existing?.isVerified?.status == 1 ? 1 : 0;
+                const dataChanged = Object.keys(convertedData).some(
+                    (key) => existing.leadData?.[key] !== convertedData[key]
+                );
+                return dataChanged || status === 1;
+            };
+
+            if (existing) {
+                if (shouldUpdate(existing)) {
+                    console.log("Updating existing lead...");
+                    existing.leadData = convertedData;
+                    existing.updatedAt = now;
+                    existing.source = "facebook";
+                    existing.nodeId = currentNode.id;
+                    existing.status = 1;
+                    existing.isVerified = {
+                        status: 0,
+                        message: "Lead updated",
+                    };
+                    existing.error = {
+                        status: false,
+                        message: "",
+                        retryCount: 0,
+                    };
+                    await existing.save();
+                    leadDoc = existing;
+                } else {
+                    console.warn("No new leads. Skipping...");
+                    continue;
+                }
+            } else {
+                leadDoc = new Lead({
+                    userId: getObjectId(flow.userId),
+                    flowId: getObjectId(flow._id),
+                    leadData: convertedData,
+                    nodeId: currentNode.id,
+                    source: "facebook",
+                });
+                await leadDoc.save();
+            }
+            if (leadDoc) await publishLead(flow.userId, flow._id, currentNode.id, [leadDoc]);
         }
     } catch (err) {
         console.error("Error processing lead event:", err);
@@ -134,24 +180,35 @@ const fetchLeadData = async (leadgenId, pageAccessToken) => {
 // --------------------------------------------------------------------
 
 export const getTranscript = async (data) => {
-    let { leadId, transcript, error, message } = data;
+    let { leadId, transcript, error, message, errorCode } = data;
     leadId = getObjectId(leadId);
     try {
         if (error == true || error == "true") {
             console.warn("Call lead error:", message);
             let lead = await Lead.findById(leadId);
 
+            //update flow call analytics
+            let flow = await Flow.findById(lead.flowId);
+            if (flow) {
+                if (errorCode == 1) flow.callAnalytics.decline += 1;
+                else if (errorCode == 2) flow.callAnalytics.noAnswer += 1;
+                else if (errorCode == 3) flow.callAnalytics.terminate += 1;
+                await flow.save();
+            }
+
             lead.error = {
-                status: true,
-                message: message,
-                stackTrace: error?.stack,
                 retryCount: lead?.error?.retryCount ? lead.error.retryCount : 0,
             };
-            lead.status = 0;
             if (lead?.error?.retryCount < 2) {
                 lead.error.retryCount += 1;
                 await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], true, true);
                 console.warn("Retrying lead...");
+            } else {
+                lead.isVerified = {
+                    status: 1,
+                    message: message,
+                };
+                await publishLead(lead.userId, lead.flowId, lead.nodeId, [lead], false);
             }
             await lead.save();
             return;
@@ -168,8 +225,14 @@ export const getTranscript = async (data) => {
         if (transcript) {
             lead.leadData.transcript = transcript;
             let analysisResult = await qualifyLead(lead);
+            lead.isVerified = lead.isVerified || {};
 
-            console.log("Analysis result: ", analysisResult);
+            // Update flow's call analytics - increment the success counter
+            let flow = await Flow.findById(lead.flowId);
+            if (flow && flow.callAnalytics) {
+                flow.callAnalytics.success = (flow.callAnalytics.success || 0) + 1;
+                await flow.save();
+            }
             lead.isVerified.status = analysisResult.pass ? 2 : 1;
             lead.isVerified.message = analysisResult.message;
             lead.error = {

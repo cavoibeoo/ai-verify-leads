@@ -22,10 +22,10 @@ export const getNodeIcon = (key: string) => {
 	switch (key) {
 		case "googleSheets":
 			return <TableChart fontSize="small" />;
-		case "sheet":
+		case "getSheetLead":
 			return <GridOn fontSize="small" />;
-		case "excel":
-			return <LibraryBooks fontSize="small" />;
+		case "exportSheetLead":
+			return <GridOn fontSize="small" />;
 		case "facebookLeadAds":
 			return <Facebook fontSize="small" />;
 		case "aiCall":
@@ -59,10 +59,10 @@ export const getNodeColor = (key: string) => {
 	switch (key) {
 		case "googleSheets":
 			return "#0F9D58";
-		case "sheet":
+		case "getSheetLead":
 			return "#16a34a"; // Green
-		case "excel":
-			return "#217346"; // Excel green
+		case "exportSheetLead":
+			return "#16a34a"; // Green
 		case "facebookLeadAds":
 			return "#1877f2";
 		case "aiCall":

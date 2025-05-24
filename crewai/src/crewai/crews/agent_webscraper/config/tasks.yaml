@@ -22,7 +22,7 @@ analyze_content:
     2. Make logical inferences only when strongly supported by evidence
     3. Keep reason explanations under 8 words
 
-    Write to "scraping_result.txt" as JSON:
+    result as JSON:
     {
       "pass": boolean,
       "criteria_results": [

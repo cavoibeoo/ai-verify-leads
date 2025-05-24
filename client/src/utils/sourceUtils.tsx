@@ -18,10 +18,13 @@ export const getSourceIcon = (source: string) => {
 	if (sourceLower.includes("facebook") || sourceLower.includes("fb")) {
 		return <Facebook fontSize="small" />;
 	}
-	if (sourceLower.includes("sheet") || sourceLower.includes("google")) {
+	if (sourceLower.includes("getSheetLead") || sourceLower.includes("google")) {
 		return <TableView fontSize="small" />;
 	}
-	if (sourceLower.includes("excel") || sourceLower.includes("xlsx")) {
+	if (
+		sourceLower.includes("exportSheetLead") ||
+		sourceLower.includes("sheet")
+	) {
 		return <InsertDriveFile fontSize="small" />;
 	}
 	if (sourceLower.includes("csv")) {
@@ -48,11 +51,14 @@ export const getSourceColor = (source: string) => {
 	if (sourceLower.includes("facebook") || sourceLower.includes("fb")) {
 		return "#1877f2";
 	}
-	if (sourceLower.includes("sheet") || sourceLower.includes("google")) {
+	if (sourceLower.includes("getSheetLead") || sourceLower.includes("google")) {
 		return "#0F9D58";
 	}
-	if (sourceLower.includes("excel") || sourceLower.includes("xlsx")) {
-		return "#0F9D58";
+	if (
+		sourceLower.includes("exportSheetLead") ||
+		sourceLower.includes("sheet")
+	) {
+		return "#16a34a";
 	}
 	if (sourceLower.includes("csv")) {
 		return "#ff9800";

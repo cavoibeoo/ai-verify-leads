@@ -139,7 +139,7 @@ const getNodeTypeFromId = (nodeId: string): string => {
 	if (basePart.includes("email")) return "email";
 	if (basePart.includes("sms")) return "sms";
 	if (basePart.includes("facebook")) return "facebookLeadAds";
-	if (basePart.includes("google") && basePart.includes("sheet"))
+	if (basePart.includes("google") && basePart.includes("getSheetLead"))
 		return "googleSheets";
 	if (basePart.includes("google") && basePart.includes("calendar"))
 		return "googleCalendar";
@@ -250,7 +250,7 @@ const LeadCard = ({ lead, onDelete, onRetry }: LeadCardProps) => {
 	const nodeColor = getNodeColorFromType(nodeType);
 
 	const shouldShowRetryButton = () => {
-		return !lead.isVerified || lead.isVerified.status !== 2;
+		return (lead.error && lead.error.status) || lead.status === 2;
 	};
 
 	return (

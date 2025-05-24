@@ -17,8 +17,6 @@ load_dotenv()
 class PreverifyState(BaseModel):
     lead_raw_data: str = ""
     criteria_field: str = ""
-    lead_raw_data_result: str = ""
-    preverify_lead_result: str = ""
 
 class PreverifyFlow(Flow[PreverifyState]):
 
@@ -34,6 +32,7 @@ class PreverifyFlow(Flow[PreverifyState]):
             .crew()
             .kickoff(inputs={"lead_raw_data": self.state.lead_raw_data, "criteria_field": self.state.criteria_field})
         )
+        return result
 
 
 
@@ -55,22 +54,20 @@ def preverify_lead(lead_data, criteria_field=None):
         if isinstance(criteria_field, list):
             criteria_field = json.dumps(criteria_field)
         preverify_flow.state.criteria_field = criteria_field
+
+    result = preverify_flow.kickoff()
+    if hasattr(result, 'raw_output'):
+        result_str = result.raw_output
+    else:
+        result_str = str(result)
         
-    preverify_flow.kickoff()
-    
-    result_file_path = "result.txt"
-    
     try:
-        with open(result_file_path, "r") as f:
-            result_content = f.read().strip()
-            result_json = json.loads(result_content)
-            return result_json
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error parsing result file: {str(e)}")
-        return {
-            "error": "Could not parse result as JSON",
-            "raw_result": preverify_flow.state.preverify_lead_result
-        }
+        result_json = json.loads(result_str)
+        return result_json
+        
+    except json.JSONDecodeError:
+        return {"result": result_str}
+
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
 		"/pages/customflow/facebook-connect/",
 		"/pages/customflow/email-connect/",
 		"/",
-	].includes(pathname);
+	].includes(pathname ?? "");
 
 	return (
 		<>

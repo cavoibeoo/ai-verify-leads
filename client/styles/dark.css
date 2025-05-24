@@ -111,7 +111,6 @@
 	border-left: 1px solid var(--darkBorder) !important;
 }
 .dark-theme .MuiFormControl-root .MuiInputBase-root {
-	border: 1px solid var(--darkBorder);
 	background-color: transparent;
 }
 .dark-theme .MuiFormControl-root .MuiInputBase-root .MuiInputBase-input {
@@ -707,4 +706,30 @@
 .dark-theme .retry-button {
 	background-color: #007bff !important;
 	color: #fff !important;
+}
+.dark-theme .lead-analytics-chart {
+	background: linear-gradient(
+		124deg,
+		rgb(131 131 131 / 4%) 0%,
+		rgb(0 5 60 / 1%) 100%
+	) !important;
+}
+.dark-theme .lead-source-card {
+	background: linear-gradient(
+		124deg,
+		rgb(131 131 131 / 4%) 0%,
+		rgb(0 5 60 / 1%) 100%
+	) !important;
+	border-radius: 10px;
+	padding: 10px;
+	transition: background 0.2s;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme .lead-source-card:hover {
+	background: linear-gradient(
+		124deg,
+		rgba(151, 151, 151, 0.197) 0%,
+		rgba(5, 9, 59, 0.01) 100%
+	) !important;
 }

@@ -124,8 +124,6 @@ const getActionName = (type: string): string => {
 			return "Schedule Event";
 		case "sendwebhook":
 			return "Send to Webhook";
-		case "deadLead":
-			return "Dead Lead Flow";
 		case "condition":
 			return "Branch Logic";
 		case "preverify":

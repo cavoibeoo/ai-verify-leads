@@ -34,7 +34,7 @@ const LeadConversion: React.FC = () => {
 					setVerifiedLeads(data.verifiedLead);
 				}
 			} catch (error) {
-				console.error("Error fetching verified leads:", error);
+				console.error("Error fetching qualified leads:", error);
 			} finally {
 				setLoading(false);
 			}
@@ -134,11 +134,11 @@ const LeadConversion: React.FC = () => {
 		<>
 			<Card
 				sx={{
-					boxShadow: "none",
 					borderRadius: "7px",
 					mb: "25px",
 					padding: { xs: "18px", sm: "20px", lg: "25px" },
 					overflow: "visible",
+					boxShadow: "0 4px 24px 0 rgba(34, 41, 47, 0.08)",
 				}}
 				className="rmui-card lighter-bg"
 			>
@@ -151,7 +151,7 @@ const LeadConversion: React.FC = () => {
 				>
 					<Box>
 						<Typography component="span" sx={{ mb: "3px", display: "block" }}>
-							Verified Lead
+							Qualified Leads
 						</Typography>
 
 						<Typography

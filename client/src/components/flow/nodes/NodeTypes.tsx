@@ -16,25 +16,7 @@ import {
 	LibraryBooks,
 } from "@mui/icons-material";
 
-// Lead Input Nodes
-export const GoogleSheetsNode = memo(({ data, selected, id }: any) => {
-	return (
-		<BaseNode
-			data={{
-				...data,
-				label: "Google Sheets",
-				icon: <TableChart fontSize="small" />,
-				type: "Input",
-				subType: "Sheets",
-				color: "#34A853",
-			}}
-			selected={selected}
-			id={id}
-		/>
-	);
-});
-
-export const SheetNode = memo(({ data, selected, id }: any) => {
+export const SheetImportNode = memo(({ data, selected, id }: any) => {
 	return (
 		<BaseNode
 			data={{
@@ -44,23 +26,24 @@ export const SheetNode = memo(({ data, selected, id }: any) => {
 				type: "Input",
 				subType: "SheetImport",
 				color: "#16a34a",
+				inputs: 0,
 			}}
 			selected={selected}
 			id={id}
 		/>
 	);
 });
-
-export const ExcelNode = memo(({ data, selected, id }: any) => {
+export const SheetExportNode = memo(({ data, selected, id }: any) => {
 	return (
 		<BaseNode
 			data={{
 				...data,
-				label: "Excel Import",
-				icon: <LibraryBooks fontSize="small" />,
+				label: "Sheet Export",
+				icon: <GridOn fontSize="small" />,
 				type: "Input",
-				subType: "ExcelImport",
-				color: "#217346",
+				subType: "SheetExport",
+				color: "#16a34a",
+				outputs: 0,
 			}}
 			selected={selected}
 			id={id}
@@ -120,6 +103,7 @@ export const CalendarNode = memo(({ data, selected, id }: any) => {
 				type: "Process",
 				subType: "googleCalendar",
 				color: "#4285F4",
+				outputs: 0,
 			}}
 			selected={selected}
 			id={id}
@@ -137,6 +121,7 @@ export const WebhookNode = memo(({ data, selected, id }: any) => {
 				type: "Process",
 				subType: "API",
 				color: "#8B5CF6",
+				outputs: 0,
 			}}
 			selected={selected}
 			id={id}

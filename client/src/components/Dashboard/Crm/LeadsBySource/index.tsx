@@ -155,39 +155,35 @@ const LeadsBySource: React.FC = () => {
 		<>
 			<Card
 				sx={{
-					boxShadow: "none",
-					borderRadius: "7px",
+					boxShadow: "0 4px 24px 0 rgba(34, 41, 47, 0.08)",
+					borderRadius: "18px",
 					mb: "25px",
-					padding: { xs: "18px", sm: "20px", lg: "25px" },
+					padding: { xs: "18px", sm: "22px", lg: "28px" },
+					minHeight: "65vh",
+					display: "flex",
+					flexDirection: "column",
+					justifyContent: "space-between",
 				}}
-				className="rmui-card lighter-bg"
+				className="rmui-card lighter-bg flow-card-content"
 			>
 				<Box
 					sx={{
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "space-between",
-						mb: "25px",
+						mb: "18px",
 					}}
 				>
 					<Typography
 						variant="h3"
 						sx={{
-							fontSize: { xs: "16px", md: "18px" },
-							fontWeight: 700,
+							fontSize: { xs: "17px", md: "19px" },
+							fontWeight: 800,
+							letterSpacing: 0.2,
 						}}
-						className="text-black"
 					>
 						Leads Sources
 					</Typography>
-
-					<Box>
-						<CustomDropdown
-							options={["This Week", "This Month", "This Year"]} // Need to change the options also in CustomDropdown file
-							onSelect={handleTimeFilterChange}
-							defaultLabel="This Month"
-						/>
-					</Box>
 				</Box>
 
 				{loading ? (
@@ -210,8 +206,8 @@ const LeadsBySource: React.FC = () => {
 					<>
 						<Box
 							sx={{
-								marginTop: "-15px",
-								marginBottom: "-15px",
+								marginTop: "-10px",
+								marginBottom: "-10px",
 							}}
 						>
 							{isChartLoaded && (
@@ -219,45 +215,61 @@ const LeadsBySource: React.FC = () => {
 									options={options}
 									series={series}
 									type="donut"
-									height={282}
+									height={220}
 									width={"100%"}
 								/>
 							)}
 						</Box>
 
-						<Grid container spacing={4} sx={{ mt: "0" }}>
+						<Grid container spacing={3} sx={{ mt: 0 }}>
 							{leadSources.map((source, index) => (
-								<Grid item xs={6} key={source.source}>
-									<Box>
+								<Grid item xs={12} key={source.source}>
+									<Box
+										sx={{
+											display: "flex",
+											alignItems: "center",
+											gap: 2,
+											px: 1,
+											py: 1.2,
+											borderRadius: "10px",
+											transition: "background 0.2s",
+										}}
+										className="lead-source-card"
+									>
+										<Box
+											sx={{
+												width: 32,
+												height: 32,
+												borderRadius: "50%",
+												background: getColorForSource(source.source),
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "center",
+												color: "#fff",
+												fontWeight: 700,
+												fontSize: 16,
+											}}
+										>
+											{source.source[0].toUpperCase()}
+										</Box>
 										<Typography
 											component="span"
 											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: "8px",
-												fontSize: "13px",
-												mb: "8px",
+												fontSize: "15px",
+												fontWeight: 600,
+												color: "#22272f",
 											}}
 										>
-											<Typography
-												component="span"
-												sx={{
-													width: "11px",
-													height: "11px",
-													borderRadius: "3px",
-													backgroundColor: getColorForSource(source.source),
-												}}
-											></Typography>
 											{source.source}
 										</Typography>
-
+										<Box sx={{ flex: 1 }} />
 										<Typography
 											variant="h6"
 											mb={0}
-											fontSize={18}
-											fontWeight={500}
+											fontSize={19}
+											fontWeight={700}
 											lineHeight={1}
-											className="text-black"
+											color="#1877f2"
 										>
 											{source.count}
 										</Typography>

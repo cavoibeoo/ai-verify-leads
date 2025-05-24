@@ -211,7 +211,7 @@ const ConnectionSelect: React.FC<ConnectionSelectProps> = ({
 	return (
 		<>
 			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel>Choose Facebook Connection</InputLabel>
+				<InputLabel required>Choose Facebook Connection</InputLabel>
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -340,7 +340,7 @@ const PageSelect: React.FC<PageSelectProps> = ({
 
 	return (
 		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel>Choose Facebook Page</InputLabel>
+			<InputLabel required>Choose Facebook Page</InputLabel>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
@@ -409,7 +409,7 @@ const FormSelect: React.FC<FormSelectProps> = ({
 
 	return (
 		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel>Choose Lead Form</InputLabel>
+			<InputLabel required>Choose Lead Form</InputLabel>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
@@ -731,7 +731,7 @@ const CalendarConnectionSelect: React.FC<CalendarConnectionSelectProps> = ({
 	return (
 		<>
 			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel>Google Calendar Connection</InputLabel>
+				<InputLabel required>Google Calendar Connection</InputLabel>
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -871,7 +871,6 @@ const getOperatorsForType = (type: string) => {
 				{ value: "equals", label: "Equals" },
 				{ value: "notEquals", label: "Not Equals" },
 				{ value: "startsWith", label: "Starts With" },
-				{ value: "isValid", label: "Is Valid Phone" },
 				{ value: "countryCode", label: "Has Country Code" },
 			];
 		case "date":
@@ -1013,8 +1012,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						},
 						{
 							field: "phone",
-							type: "phone",
-							operator: "isValid",
+							type: "string",
+							operator: "isNotEmpty",
 							value: "",
 						},
 					],
@@ -1186,88 +1185,49 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			updateSettings(key, parseInt(event.target.value) || 0);
 		};
 
+	const validateSettings = (): boolean => {
+		const nodeType = selectedNode.type || "default";
+		switch (nodeType) {
+			case "aiCall":
+				return (
+					!!localSettings.language &&
+					!!localSettings.introduction &&
+					Array.isArray(localSettings.questions) &&
+					localSettings.questions.length > 0 &&
+					localSettings.questions.every((q) => q && q.trim() !== "")
+				);
+			case "preVerify":
+				return (
+					Array.isArray(localSettings.criteria) &&
+					localSettings.criteria.length > 0 &&
+					localSettings.criteria.every((c: any) => c.field && c.operator)
+				);
+			case "facebookLeadAds":
+				return (
+					!!localSettings.connection &&
+					!!localSettings.pageId &&
+					!!localSettings.formId
+				);
+			case "sendWebhook":
+				return !!localSettings.webhookUrl;
+			case "googleCalendar":
+				return (
+					!!localSettings.connection &&
+					!!localSettings.calendarName &&
+					!!localSettings.eventName
+				);
+			case "getSheetLead":
+			case "exportSheetLead":
+				return !!localSettings.connection && !!localSettings.sheetUrl;
+			default:
+				return true;
+		}
+	};
+
 	const renderSettings = () => {
 		const nodeType = selectedNode.type || "default";
 
 		switch (nodeType) {
-			case "googleSheets":
-				return (
-					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Spreadsheet ID"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.spreadsheetId || ""}
-							onChange={handleTextChange("spreadsheetId")}
-							placeholder="Enter spreadsheet ID"
-						/>
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet Name"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetName || ""}
-							onChange={handleTextChange("sheetName")}
-							placeholder="Enter sheet name"
-						/>
-					</>
-				);
-
-			case "sheet":
-				return (
-					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet url"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetUrl || ""}
-							onChange={(e) => {
-								updateSettings("sheetUrl", e.target.value);
-							}}
-							placeholder="Enter sheet url"
-							required
-							helperText="The URL where lead data stored"
-						/>
-					</>
-				);
-
-			case "excel":
-				return (
-					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Excel url"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.excelUrl || ""}
-							onChange={(e) => {
-								updateSettings("excelUrl", e.target.value);
-							}}
-							placeholder="Enter excel url"
-							required
-							helperText="The URL where lead data stored"
-						/>
-					</>
-				);
-
 			case "facebookLeadAds":
 				return (
 					<>
@@ -1332,6 +1292,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							value={localSettings.introduction || ""}
 							onChange={handleTextChange("introduction")}
 							placeholder="Enter introduction message"
+							required
 						/>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
@@ -1350,6 +1311,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									fullWidth
 									size="small"
 									label={`Question ${index + 1}`}
+									required
 									variant="outlined"
 									multiline
 									minRows={1}
@@ -1450,6 +1412,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							value={localSettings.eventName || ""}
 							onChange={handleTextChange("eventName")}
 							placeholder="Enter event name"
+							required
 						/>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
@@ -1721,44 +1684,67 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 					</>
 				);
 
-			case "sms":
+			case "exportSheetLead":
 				return (
 					<>
-						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>SMS Provider</InputLabel>
-							<Select
-								value={localSettings.provider || "twilio"}
-								onChange={handleSelectChange("provider")}
-								label="SMS Provider"
-							>
-								<MenuItem value="twilio">Twilio</MenuItem>
-								<MenuItem value="messagebird">MessageBird</MenuItem>
-							</Select>
-						</FormControl>
+						{" "}
+						<CalendarConnectionSelect
+							value={localSettings.connection || ""}
+							onChange={(value) => updateSettings("connection", value)}
+						/>{" "}
 						<TextField
 							fullWidth
 							size="small"
-							label="Message Template"
+							label="Sheet URL"
 							variant="outlined"
 							margin="normal"
 							multiline
-							minRows={3}
+							minRows={1}
 							maxRows={10}
-							value={localSettings.template || ""}
-							onChange={handleTextChange("template")}
-							placeholder="Enter SMS template"
-						/>
+							value={localSettings.sheetUrl || ""}
+							onChange={handleTextChange("sheetUrl")}
+							placeholder="Enter Google Sheet URL"
+							required
+							helperText="The URL of the Google Sheet to export data to"
+						/>{" "}
 					</>
 				);
 
+			case "getSheetLead":
+				return (
+					<>
+						{" "}
+						<CalendarConnectionSelect
+							value={localSettings.connection || ""}
+							onChange={(value) => updateSettings("connection", value)}
+						/>{" "}
+						<TextField
+							fullWidth
+							size="small"
+							label="Sheet URL"
+							variant="outlined"
+							margin="normal"
+							multiline
+							minRows={1}
+							maxRows={10}
+							value={localSettings.sheetUrl || ""}
+							onChange={handleTextChange("sheetUrl")}
+							placeholder="Enter Google Sheet URL"
+							required
+							helperText="The URL of the Google Sheet to import data from"
+						/>{" "}
+					</>
+				);
 			case "preVerify":
 				return (
 					<>
+						{" "}
 						<Typography variant="subtitle2" gutterBottom>
-							Configure Pre-verification Criteria
-						</Typography>
-
+							{" "}
+							Configure Pre-verification Criteria{" "}
+						</Typography>{" "}
 						<Box sx={{ mt: 2, mb: 3 }}>
+							{" "}
 							<FormControlLabel
 								control={
 									<Checkbox
@@ -1770,7 +1756,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									/>
 								}
 								label="Enable Web Scraping Verification"
-							/>
+							/>{" "}
 							{localSettings.enableWebScraping && (
 								<TextField
 									fullWidth
@@ -1786,13 +1772,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									placeholder="Enter prompt for web scraping verification"
 									helperText="This prompt will be used to give criteras for the web scraping verification process"
 								/>
-							)}
+							)}{" "}
 						</Box>
-
 						<Divider sx={{ my: 2 }}>
 							<Chip label="Field Criteria" />
 						</Divider>
-
 						{/* Danh sách các tiêu chí */}
 						{(
 							localSettings.criteria || [
@@ -1841,6 +1825,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									fullWidth
 									size="small"
 									label="Field"
+									required
 									variant="outlined"
 									margin="normal"
 									multiline
@@ -1859,7 +1844,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								/>
 
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel>Type</InputLabel>
+									<InputLabel required>Type</InputLabel>
 									<Select
 										value={criterion.type || "string"}
 										onChange={(e) => {
@@ -1889,7 +1874,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								</FormControl>
 
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel>Operator</InputLabel>
+									<InputLabel required>Operator</InputLabel>
 									<Select
 										value={criterion.operator || "equals"}
 										onChange={(e) => {
@@ -1962,7 +1947,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								)}
 							</Box>
 						))}
-
 						{/* Nút thêm tiêu chí */}
 						<Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
 							<Button
@@ -1985,7 +1969,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								Add Criteria
 							</Button>
 						</Box>
-
 						<Box
 							sx={{
 								mt: 2,
@@ -2080,7 +2063,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							)
 						}
 						onClick={handleSaveChanges}
-						disabled={!hasChanges || isSaving}
+						disabled={!hasChanges || isSaving || !validateSettings()}
 					>
 						{isSaving ? "Saving..." : "Save Changes"}
 					</Button>

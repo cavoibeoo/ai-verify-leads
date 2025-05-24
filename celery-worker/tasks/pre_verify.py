@@ -80,7 +80,8 @@ def pre_verify(self, message):
             "criteriaField": json.dumps(criteria),
         }
 
-        website_url = lead['leadData']['custom_fields'].get('website_link')
+        # website_url = lead['leadData']['custom_fields'].get('website_link')
+        website_url = lead['leadData'].get('website_link')
         scrape_body = {
             "url": website_url,
             "promptCriteria": settings.get('webScrapingPrompt', ''),
@@ -140,8 +141,24 @@ def pre_verify(self, message):
 
         # Log responses for debugging
         print(f"Field verify API: {field_response}")
-        print(f"Response from web scraping API: {scrape_response}")
+        print(f"Response from web scrapingAPI: {scrape_response}")
 
+        if (field_response.get('pass', False) is False):
+            reason = ''
+            for criteria in field_response.get('criteria_results', []):
+                if criteria.get('passed', False) is False:
+                    reason += f"{criteria.get('reason', '')}\n"
+            # Update lead with valid status
+            print(f"Field verification failed: {reason}")
+            update_lead(
+                lead['_id'],
+                {
+                    "isVerified": {
+                        "status": 1,
+                        "message": reason
+                    },
+                }
+            )
         # Return True only if both checks pass
         return {"result":  field_response.get('pass', False) and scrape_response.get('pass', True),
                 "isPublish": True, }
