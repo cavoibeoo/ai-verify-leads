@@ -28,7 +28,8 @@ evaluate_transcript:
         2. Apply logical inference sparingly - only when evidence strongly suggests compliance
         3. Apply these rules:
         - Lead FAILS if any "must-have" criterion fails
-        - Lead must meeting >=50% of criteria to PASSES
+        - Lead FAILS if "Do you want to set up a consultant?" is answered "no" or related to no
+        - Otherwise PASS if passed all "must-have" at least 1 other criteria are met
 
         Write to "transcript_result.txt" as:
         {
@@ -41,7 +42,7 @@ evaluate_transcript:
               "must_have": boolean
             }
           ],
-          "message": "explanation of the evaluation"
+          "message": "particular criteria that lead not met"
         }
     expected_output: JSON with pass status and results
     agent: transcript_analyzer_agent

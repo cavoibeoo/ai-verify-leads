@@ -9,8 +9,8 @@ import json
 import requests
 import socket
 import time as time_module
-from datetime import datetime, timedelta, time, timezone
-import backoff
+import datetime
+from datetime import timedelta, time, timezone
 
 from tasks.base_tasks_handler import BaseTaskHandler
 from utils.dbUtils import *
@@ -40,16 +40,15 @@ def google_calendar(self, message):
 
         # Get busy slots
         busy_slots = get_busy_slots(service)
-
         # Time conversion for available slots
         start_str = settings["startTime"]
         end_str = settings["endTime"]
-        start_hour = dt.strptime(start_str, "%H:%M") - timedelta(hours=7)
-        end_hour = dt.strptime(end_str, "%H:%M") - timedelta(hours=7)
+        start_hour = datetime.datetime.strptime(start_str, "%H:%M") - timedelta(hours=7)
+        end_hour = datetime.datetime.strptime(end_str, "%H:%M") - timedelta(hours=7)
 
         # Find available slot
         next_slot = find_nearest_available_slot(busy_slots,
-                                                settings["startWorkday"], settings["endWorkday"],
+                                                settings["startWorkDays"], settings["endWorkDays"],
                                                 start_hour.time(), end_hour.time(), duration_minute)
 
         if not next_slot:
@@ -95,13 +94,12 @@ def google_calendar(self, message):
 def build_event_body(settings, lead, start_time_str, end_time_str, time_zone):
     """Build the event body for Google Calendar."""
     conference_data = {
-        'createRequest': {
-            'requestId': f"meet-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
-            'conferenceSolutionKey': {
-                'type': 'hangoutsMeet'
-            }
+        'requestId': f"meet-{datetime.datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
+        'conferenceSolutionKey': {
+            'type': 'hangoutsMeet'
         }
     }
+
     return {
         'summary': settings.get('eventName', 'No Title'),
         'description': settings.get('description', format_meeting_description(lead["leadData"])),

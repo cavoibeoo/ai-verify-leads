@@ -224,15 +224,14 @@ export const getTranscript = async (data) => {
         if (transcript) {
             lead.leadData.transcript = transcript;
             let analysisResult = await qualifyLead(lead);
-            let flow = await Flow.findOneAndUpdate(
-                { _id: lead.flowId },
-                {
-                    $set: {
-                        "callAnalytics.success": flow.callAnalytics.success + 1,
-                    },
-                },
-                { new: true }
-            );
+            lead.isVerified = lead.isVerified || {};
+
+            // Update flow's call analytics - increment the success counter
+            let flow = await Flow.findById(lead.flowId);
+            if (flow && flow.callAnalytics) {
+                flow.callAnalytics.success = (flow.callAnalytics.success || 0) + 1;
+                await flow.save();
+            }
             lead.isVerified.status = analysisResult.pass ? 2 : 1;
             lead.isVerified.message = analysisResult.message;
             lead.error = {

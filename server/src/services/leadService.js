@@ -100,7 +100,7 @@ export const retryLead = async (leadId, userId) => {
         }
 
         let flow = await flowService.getFlow(lead.flowId, { userId });
-        if (flow.status != 3) {
+        if (flow.status != 2) {
             throw new ApiError(StatusCodes.BAD_REQUEST, "Flow is not active.");
         }
 
