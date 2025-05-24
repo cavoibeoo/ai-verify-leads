@@ -105,6 +105,7 @@ const processLeadEvent = async (lead) => {
             const existing = await Lead.findOne({
                 $or: [{ "leadData.email": email }, { "leadData.phone": phone }],
                 userId: flow.userId,
+                flowId: flow._id,
             });
 
             let leadDoc;
