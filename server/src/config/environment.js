@@ -61,6 +61,7 @@ const config = {
         vhost: "customers",
     },
     rabbitMQURL: process.env.RABBITMQ_URL,
+    openaiApiKey: process.env.OPENAI_API_KEY,
 };
 
 export default config;
