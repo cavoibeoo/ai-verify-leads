@@ -56,6 +56,8 @@ import {
 	optimizePrompt,
 } from "@/services/flowServices";
 import { useReactFlow } from "@xyflow/react";
+import { getNodeIcon } from "@/utils/nodeUtils";
+import { useNodeTypes } from "@/context/NodeTypeContext";
 
 type PropertiesPanelProps = {
 	selectedNode: Node | null;
@@ -1000,6 +1002,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	const [isSaving, setIsSaving] = useState<boolean>(false);
 	const reactFlowInstance = useReactFlow();
 	const [subscribing, setSubscribing] = useState(false);
+	const { nodeTypeMap } = useNodeTypes();
 
 	// --- Added for Optimize Dialog ---
 	const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
@@ -1755,16 +1758,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
 									Start Work Day *
 								</Typography>
-								<Tooltip
-									title={propertyTooltips.startWorkDay}
-									arrow
-									placement="right"
-									enterDelay={300}
-								>
-									<IconButton size="small" sx={{ ml: 0.5 }}>
-										<HelpOutline fontSize="small" color="primary" />
-									</IconButton>
-								</Tooltip>
 							</Box>
 							<Select
 								value={
@@ -1789,16 +1782,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
 									End Work Day *
 								</Typography>
-								<Tooltip
-									title={propertyTooltips.endWorkDay}
-									arrow
-									placement="right"
-									enterDelay={300}
-								>
-									<IconButton size="small" sx={{ ml: 0.5 }}>
-										<HelpOutline fontSize="small" color="primary" />
-									</IconButton>
-								</Tooltip>
 							</Box>
 							<Select
 								value={
@@ -1840,16 +1823,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									<Typography variant="body2" sx={{ fontWeight: 500 }}>
 										Start Time *
 									</Typography>
-									<Tooltip
-										title={propertyTooltips.startTime}
-										arrow
-										placement="right"
-										enterDelay={300}
-									>
-										<IconButton size="small" sx={{ ml: 0.5 }}>
-											<HelpOutline fontSize="small" color="primary" />
-										</IconButton>
-									</Tooltip>
 								</Box>
 								<TextField
 									fullWidth
@@ -1867,16 +1840,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									<Typography variant="body2" sx={{ fontWeight: 500 }}>
 										End Time *
 									</Typography>
-									<Tooltip
-										title={propertyTooltips.endTime}
-										arrow
-										placement="right"
-										enterDelay={300}
-									>
-										<IconButton size="small" sx={{ ml: 0.5 }}>
-											<HelpOutline fontSize="small" color="primary" />
-										</IconButton>
-									</Tooltip>
 								</Box>
 								<TextField
 									fullWidth
@@ -2558,16 +2521,15 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			</Box>
 
 			<NodeInfoCard className="transcript-bg">
-				<Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-					<NodeColorIndicator
-						bgcolor={String(selectedNode.data?.color) || "#94a3b8"}
-					/>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+					{getNodeIcon(String(selectedNode.type))}
 					<Typography variant="subtitle2">
 						{String(selectedNode.type) || "Unknown Node"}
 					</Typography>
 				</Box>
 				<Typography variant="caption" color="text.secondary">
-					{String(selectedNode.data?.description) || "No description available"}
+					{nodeTypeMap[String(selectedNode.type)]?.description ||
+						"No description available"}
 				</Typography>
 			</NodeInfoCard>
 
