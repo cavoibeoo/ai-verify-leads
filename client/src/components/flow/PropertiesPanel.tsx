@@ -952,6 +952,10 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	const reactFlowInstance = useReactFlow();
 	const [subscribing, setSubscribing] = useState(false);
 
+	// --- Added for Optimize Dialog ---
+	const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
+	const [optimizedPrompt, setOptimizedPrompt] = useState<string>("");
+
 	if (!selectedNode) {
 		return null;
 	}
@@ -1080,6 +1084,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	};
 
 	const handleSaveChanges = async () => {
+		if (!validateSettings()) {
+			toast.error("Please fill in all required fields before saving.");
+			return;
+		}
+
 		if (selectedNode.type === "facebookLeadAds" && localSettings.pageId) {
 			setIsSaving(true);
 			try {
@@ -1194,7 +1203,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 					!!localSettings.introduction &&
 					Array.isArray(localSettings.questions) &&
 					localSettings.questions.length > 0 &&
-					localSettings.questions.every((q) => q && q.trim() !== "")
+					localSettings.questions.every((q) => q && q.trim() !== "") &&
+					!!localSettings.goodByeMessage
 				);
 			case "preVerify":
 				return (
@@ -1222,6 +1232,25 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			default:
 				return true;
 		}
+	};
+
+	const handleOpenOptimizeDialog = () => {
+		setOptimizedPrompt(localSettings.prompt || "");
+		setOptimizeDialogOpen(true);
+	};
+
+	const handleCloseOptimizeDialog = () => {
+		setOptimizeDialogOpen(false);
+	};
+
+	const handleOptimizePrompt = () => {
+		// Simulate optimization (replace with real logic if needed)
+		setOptimizedPrompt((prev) => prev + " (Optimized)");
+	};
+
+	const handleUseOptimizedPrompt = () => {
+		updateSettings("prompt", optimizedPrompt);
+		setOptimizeDialogOpen(false);
 	};
 
 	const renderSettings = () => {
@@ -1267,6 +1296,16 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							</Select>
 						</FormControl>
 
+						{/* Optimize Button above Prompt */}
+						<Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+							<Button
+								variant="outlined"
+								size="small"
+								onClick={handleOpenOptimizeDialog}
+							>
+								Optimize
+							</Button>
+						</Box>
 						<TextField
 							fullWidth
 							size="small"
@@ -1279,6 +1318,52 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							onChange={handleTextChange("prompt")}
 							placeholder="Enter prompt"
 						/>
+
+						{/* Optimize Dialog */}
+						<Dialog
+							open={optimizeDialogOpen}
+							onClose={handleCloseOptimizeDialog}
+							maxWidth="sm"
+							fullWidth
+						>
+							<DialogTitle
+								sx={{
+									display: "flex",
+									justifyContent: "space-between",
+									alignItems: "center",
+								}}
+							>
+								Optimize Prompt
+								<Button
+									onClick={handleOptimizePrompt}
+									variant="contained"
+									size="small"
+								>
+									Optimize
+								</Button>
+							</DialogTitle>
+							<DialogContent>
+								<TextField
+									fullWidth
+									label="Prompt"
+									multiline
+									minRows={4}
+									maxRows={12}
+									value={optimizedPrompt}
+									onChange={(e) => setOptimizedPrompt(e.target.value)}
+									margin="normal"
+								/>
+							</DialogContent>
+							<DialogActions sx={{ justifyContent: "center" }}>
+								<Button
+									variant="contained"
+									color="primary"
+									onClick={handleUseOptimizedPrompt}
+								>
+									Use the optimized prompt
+								</Button>
+							</DialogActions>
+						</Dialog>
 
 						<TextField
 							fullWidth
@@ -1373,6 +1458,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							value={localSettings.goodByeMessage || ""}
 							onChange={handleTextChange("goodByeMessage")}
 							placeholder="Enter goodbye message"
+							required
 						/>
 					</>
 				);
@@ -2063,7 +2149,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							)
 						}
 						onClick={handleSaveChanges}
-						disabled={!hasChanges || isSaving || !validateSettings()}
+						disabled={!hasChanges || isSaving}
 					>
 						{isSaving ? "Saving..." : "Save Changes"}
 					</Button>

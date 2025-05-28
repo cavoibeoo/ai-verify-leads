@@ -30,8 +30,8 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { FlowProvider } from "@/context/FlowContext";
 
 export const metadata = {
-	title: "Sine | AI Lead Verify Lead Automation Website",
-	description: "AI Lead Verify Lead Automation Website",
+	title: "Sine | AI Lead Qualify Automation Website",
+	description: "AI Lead Qualify Automation Website",
 	icons: {
 		icon: "/images/Sine_logo_icon.png",
 		apple: "/images/Sine_logo_icon.png",

@@ -474,7 +474,7 @@ export default function LeadPipelinePage() {
 					</Box>
 				</Box>
 
-				<Divider sx={{ mb: 3 }} />
+				<Divider sx={{ mt: 3, mb: 3 }} />
 
 				{/* Flow Selector */}
 				<Paper
