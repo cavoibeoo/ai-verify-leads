@@ -1,48 +1,130 @@
 analyze_prompt:
     description: >
-        Extract essential lead qualification criteria from: {customer_prompt}.
-        Follow these extraction rules:
-        1. Identify explicit business requirements that qualify leads
-        2. Extract only criteria that can be evaluated against actual leads
-        3. Format each criterion with a name, description, and "must-have" boolean
-        4. Include only criteria that are mentioned or strongly implied
+        Extract lead qualification criteria from the business prompt: {customer_prompt}
 
-        Write to "customer_prompt_result.txt".
+        EXTRACTION REQUIREMENTS:
+        1. Identify only criteria that are:
+           - Explicitly mentioned in the business description
+           - Directly related to lead qualification
+           - Measurable from transcript evidence
+           - Relevant to the sales process
 
-        Format as JSON array:
+        2. For each criterion, determine:
+           - Clear, specific name (2-4 words max)
+           - Concrete description of what to look for
+           - Whether it's absolutely essential ("must_have": true)
+
+        3. MUST_HAVE GUIDELINES:
+           - Mark as must_have only if business explicitly states it's required
+           - Typically 1-2 criteria maximum should be must_have
+           - Common must_have examples: budget range, decision authority, timeline urgency
+
+        4. QUALITY STANDARDS:
+           - Each criterion must be answerable from typical sales conversation
+           - Avoid subjective assessments (interest level, personality fit)
+           - Focus on factual, business-relevant qualifications
+           - Ensure criteria don't overlap or duplicate
+
+        OUTPUT FORMAT:
+        Write results to "customer_prompt_result.txt" as valid JSON:
         [
           {
-            "name": "brief name",
-            "description": "short explanation",
-            "must_have": true/false
+            "name": "Budget Authority",
+            "description": "Has stated budget or authority to make financial decisions",
+            "must_have": true,
+            "evaluation_guide": "Look for explicit budget mentions, decision-making authority, or purchasing power indicators"
+          },
+          {
+            "name": "Timeline Need",
+            "description": "Has specific timeline or urgency for solution",
+            "must_have": false,
+            "evaluation_guide": "Check for mentions of deadlines, urgency, or specific implementation timeframes"
           }
         ]
-    expected_output: A valid JSON array of criteria objects.
+
+        VALIDATION CHECKLIST:
+        - Are all criteria derived from the business prompt?
+        - Can each be evaluated objectively from a transcript?
+        - Are descriptions clear and specific?
+        - Is the must_have designation justified?
+
+    expected_output: >
+        Valid JSON array of qualification criteria with name, description, must_have flag,
+        and evaluation_guide for consistent application.
     agent: prompt_analyzer_agent
 
 evaluate_transcript:
     description: >
-        Analyze if lead in {transcripts} meets criteria from "customer_prompt_result.txt".
-        EVALUATION LOGIC:
-        1. Review each criterion against relevant transcript content
-        2. Apply logical inference sparingly - only when evidence strongly suggests compliance
-        3. Apply these rules:
-        - Lead FAILS if any "must-have" criterion fails
-        - Lead FAILS if "Do you want to set up a consultant?" is answered "no" or related to no
-        - Otherwise PASS if passed all "must-have" at least 1 other criteria are met
+        Evaluate lead qualification based on transcript: {transcripts} using criteria from "customer_prompt_result.txt"
 
-        Write to "transcript_result.txt" as:
+        EVALUATION PROCESS:
+
+        1. LOAD CRITERIA:
+           - Read qualification criteria from customer_prompt_result.txt
+           - Understand must_have vs. nice-to-have distinctions
+           - Review evaluation guides for each criterion
+
+        2. TRANSCRIPT ANALYSIS:
+           - Read entire transcript for context
+           - Identify key qualification-relevant statements
+           - Note explicit rejections or acceptance of next steps
+           - Look for behavioral indicators that support or contradict criteria
+
+        3. EVIDENCE COLLECTION:
+           For each criterion, collect:
+           - Direct quotes supporting pass/fail decision
+           - Contextual evidence from conversation flow
+           - Behavioral indicators (if applicable)
+           - Note absence of expected information
+
+        4. DECISION LOGIC:
+           
+           AUTOMATIC FAIL CONDITIONS (check first):
+           - Any must_have criterion fails
+           - Lead explicitly declines consultation/next steps
+           - Lead states no budget/authority after direct questioning
+           - Lead indicates no current need or wrong timing
+           
+           PASS REQUIREMENTS (if no auto-fail):
+           - ALL must_have criteria pass
+           - At least 60% of remaining criteria pass
+           - No explicit rejection of moving forward
+           - Overall conversation indicates genuine prospect
+
+        5. CONSULTATION QUESTION HANDLING:
+           - If asked "Do you want to set up a consultation?" or similar:
+             * "No" or equivalent = FAIL
+             * "Yes" or equivalent = positive indicator
+             * Unclear response = evaluate based on overall conversation tone
+
+        OUTPUT FORMAT:
+        Write to "transcript_result.txt":
         {
           "pass": boolean,
+          "overall_score": "X/Y criteria met",
+          "consultation_response": "yes/no/unclear/not_asked",
           "criteria_results": [
             {
-              "criterion": "name",
-              "passed": boolean,
-              "reason": "brief explanation",
-              "must_have": boolean
+              "criterion": "Budget Authority",
+              "passed": true,
+              "must_have": true,
+              "evidence": "Direct quote or behavioral indicator",
+              "confidence": "high/medium/low",
+              "reasoning": "Brief explanation of decision"
             }
           ],
-          "message": "particular criteria that lead not met"
+          "decision_summary": "Key factors that led to pass/fail decision in 10 to 15 words",
+          "red_flags": ["Any concerning statements or behaviors"],
+          "positive_indicators": ["Strong qualification signals"]
         }
-    expected_output: JSON with pass status and results
+
+        QUALITY ASSURANCE:
+          - Ensure decisions are based on evidence, not assumptions
+          - Maintain consistency in evaluation standards
+          - Provide clear reasoning for borderline cases
+          - Flag any ambiguous or missing information
+
+    expected_output: >
+        Comprehensive JSON evaluation with pass/fail decision, detailed criterion analysis,
+        supporting evidence, and clear reasoning for consistent application.
     agent: transcript_analyzer_agent

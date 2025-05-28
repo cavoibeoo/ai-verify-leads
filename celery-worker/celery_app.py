@@ -27,7 +27,7 @@ app.conf.update(
 app.conf.beat_schedule = {
     'get-sheet-leads-every-5-minutes': {
         'task': 'tasks.getSheets',
-        'schedule': 60.0,  # 5 minutes in seconds
+        'schedule': 3600.0,  # 15 minutes in seconds
         'options': {'queue': 'getSheets.consumer'},
     },
 }
