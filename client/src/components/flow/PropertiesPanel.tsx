@@ -216,8 +216,7 @@ const ConnectionSelect: React.FC<ConnectionSelectProps> = ({
 
 	return (
 		<>
-			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel required>Choose Facebook Connection</InputLabel>
+			<FormControl fullWidth size="small">
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -226,7 +225,6 @@ const ConnectionSelect: React.FC<ConnectionSelectProps> = ({
 								onChange(e.target.value);
 							}
 						}}
-						label="Choose Facebook Connection"
 						disabled={loading}
 						sx={{ flex: 1 }}
 					>
@@ -345,13 +343,11 @@ const PageSelect: React.FC<PageSelectProps> = ({
 	};
 
 	return (
-		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel required>Choose Facebook Page</InputLabel>
+		<FormControl fullWidth size="small" disabled={disabled}>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
-					label="Choose Facebook Page"
 					disabled={loading || disabled}
 					sx={{ flex: 1 }}
 				>
@@ -414,13 +410,11 @@ const FormSelect: React.FC<FormSelectProps> = ({
 	};
 
 	return (
-		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel required>Choose Lead Form</InputLabel>
+		<FormControl fullWidth size="small" disabled={disabled}>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
-					label="Choose Lead Form"
 					disabled={loading || disabled}
 					sx={{ flex: 1 }}
 				>
@@ -736,8 +730,7 @@ const CalendarConnectionSelect: React.FC<CalendarConnectionSelectProps> = ({
 
 	return (
 		<>
-			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel required>Google Calendar Connection</InputLabel>
+			<FormControl fullWidth size="small">
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -747,7 +740,6 @@ const CalendarConnectionSelect: React.FC<CalendarConnectionSelectProps> = ({
 								onChange(e.target.value);
 							}
 						}}
-						label="Google Calendar Connection"
 						disabled={loading}
 						sx={{ flex: 1 }}
 					>
@@ -977,6 +969,19 @@ const propertyTooltips = {
 	startTime: "The earliest time meetings can be scheduled. Example: 09:00.",
 	endTime: "The latest time meetings can be scheduled. Example: 17:00.",
 	duration: "Length of each meeting in minutes. Example: 30.",
+	// Facebook Lead Ads tooltips:
+	facebookConnection:
+		"Select or connect your Facebook account to access your pages and forms.",
+	facebookPage: "Choose the Facebook Page that owns the lead form.",
+	facebookForm: "Select the Facebook Lead Form to capture leads from.",
+	// Sheet tooltips:
+	sheetConnection:
+		"Select or connect your Google account to access Google Sheets.",
+	sheetUrl:
+		"Paste the full URL of the Google Sheet to import/export leads. Example: 'https://docs.google.com/spreadsheets/d/...'",
+	// Webhook tooltips:
+	webhookUrl:
+		"The endpoint where lead data will be sent. Must start with http(s)://. Example: 'https://yourdomain.com/webhook'",
 };
 
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
@@ -1324,24 +1329,75 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "facebookLeadAds":
 				return (
 					<>
-						<ConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Facebook Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.facebookConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<ConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
 
-						<PageSelect
-							connection={localSettings.connection}
-							value={localSettings.pageId || ""}
-							onChange={(value) => updateSettings("pageId", value)}
-							disabled={!localSettings.connection}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Facebook Page *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.facebookPage}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<PageSelect
+								connection={localSettings.connection}
+								value={localSettings.pageId || ""}
+								onChange={(value) => updateSettings("pageId", value)}
+								disabled={!localSettings.connection}
+							/>
+						</FormControl>
 
-						<FormSelect
-							pageId={localSettings.pageId}
-							value={localSettings.formId || ""}
-							onChange={(value) => updateSettings("formId", value)}
-							disabled={!localSettings.pageId}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Lead Form *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.facebookForm}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<FormSelect
+								pageId={localSettings.pageId}
+								value={localSettings.formId || ""}
+								onChange={(value) => updateSettings("formId", value)}
+								disabled={!localSettings.pageId}
+							/>
+						</FormControl>
 					</>
 				);
 
@@ -1913,30 +1969,43 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "sendWebhook":
 				return (
 					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Webhook URL"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.webhookUrl || ""}
-							onChange={(e) => {
-								let value = e.target.value;
-								if (
-									value &&
-									!(value.startsWith("http://") || value.startsWith("https://"))
-								) {
-									value = "https://" + value;
-								}
-								updateSettings("webhookUrl", value);
-							}}
-							placeholder="Enter webhook URL"
-							required
-							helperText="The URL where lead data will be sent"
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Webhook URL *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.webhookUrl}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.webhookUrl || ""}
+								onChange={(e) => {
+									let value = e.target.value;
+									if (
+										value &&
+										!(
+											value.startsWith("http://") ||
+											value.startsWith("https://")
+										)
+									) {
+										value = "https://" + value;
+									}
+									updateSettings("webhookUrl", value);
+								}}
+								placeholder="Enter webhook URL"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 
@@ -2033,52 +2102,106 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "exportSheetLead":
 				return (
 					<>
-						{" "}
-						<CalendarConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>{" "}
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet URL"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetUrl || ""}
-							onChange={handleTextChange("sheetUrl")}
-							placeholder="Enter Google Sheet URL"
-							required
-							helperText="The URL of the Google Sheet to export data to"
-						/>{" "}
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Google Account Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<CalendarConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
+
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Sheet URL *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetUrl}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.sheetUrl || ""}
+								onChange={handleTextChange("sheetUrl")}
+								placeholder="Enter Google Sheet URL"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 
 			case "getSheetLead":
 				return (
 					<>
-						{" "}
-						<CalendarConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>{" "}
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet URL"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetUrl || ""}
-							onChange={handleTextChange("sheetUrl")}
-							placeholder="Enter Google Sheet URL"
-							required
-							helperText="The URL of the Google Sheet to import data from"
-						/>{" "}
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Google Account Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<CalendarConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
+
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Sheet URL *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetUrl}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.sheetUrl || ""}
+								onChange={handleTextChange("sheetUrl")}
+								placeholder="Enter Google Sheet URL"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 			case "preVerify":
