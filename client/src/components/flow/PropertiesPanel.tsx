@@ -57,6 +57,7 @@ import {
 } from "@/services/flowServices";
 import { useReactFlow } from "@xyflow/react";
 import { getNodeIcon } from "@/utils/nodeUtils";
+import { useNodeTypes } from "@/context/NodeTypeContext";
 
 type PropertiesPanelProps = {
 	selectedNode: Node | null;
@@ -1001,6 +1002,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	const [isSaving, setIsSaving] = useState<boolean>(false);
 	const reactFlowInstance = useReactFlow();
 	const [subscribing, setSubscribing] = useState(false);
+	const { nodeTypeMap } = useNodeTypes();
 
 	// --- Added for Optimize Dialog ---
 	const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
@@ -2526,7 +2528,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 					</Typography>
 				</Box>
 				<Typography variant="caption" color="text.secondary">
-					{String(selectedNode.data?.description) || "No description available"}
+					{nodeTypeMap[String(selectedNode.type)]?.description ||
+						"No description available"}
 				</Typography>
 			</NodeInfoCard>
 
