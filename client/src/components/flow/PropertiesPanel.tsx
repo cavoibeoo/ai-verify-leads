@@ -1459,6 +1459,9 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							</Box>
 							<TextField
 								fullWidth
+								multiline
+								minRows={1}
+								maxRows={10}
 								size="small"
 								value={localSettings.prompt || ""}
 								onChange={handleTextChange("prompt")}
