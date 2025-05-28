@@ -34,6 +34,7 @@ import {
 	Call,
 	Remove,
 	Save,
+	HelpOutline,
 } from "@mui/icons-material";
 import {
 	useFacebookConnections,
@@ -940,6 +941,20 @@ const daysOfWeek = [
 	{ value: 6, label: "Sunday" },
 ];
 
+// Tooltip mapping
+const propertyTooltips = {
+	prompt:
+		"Describe what the AI should say or ask. Example: 'Ask the lead about their business needs.'",
+	introduction:
+		"Opening message for the call. Example: 'Hello, this is Anna from Acme Corp.'",
+	questions:
+		"List of questions to ask the lead. Example: 'What is your budget? What services are you interested in?' You can add multiple questions.",
+	goodByeMessage:
+		"Closing message for the call. Example: 'Thank you for your time! We will be in touch soon.'",
+	language:
+		"Select the language for the AI call. Supported: English, Vietnamese.",
+};
+
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	selectedNode,
 	onChange,
@@ -1310,13 +1325,26 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 				return (
 					<>
 						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>Language</InputLabel>
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Language
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.language}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
 							<Select
 								value={localSettings.language || "vietnamese"}
 								onChange={handleSelectChange("language")}
 								label="Language"
 							>
-								<MenuItem value="vietnamese">Tiếng Việt</MenuItem>
 								<MenuItem value="english">English</MenuItem>
 							</Select>
 						</FormControl>
@@ -1331,18 +1359,30 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								Optimize
 							</Button>
 						</Box>
-						<TextField
-							fullWidth
-							size="small"
-							label="Prompt"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.prompt || ""}
-							onChange={handleTextChange("prompt")}
-							placeholder="Enter prompt"
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Prompt
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.prompt}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.prompt || ""}
+								onChange={handleTextChange("prompt")}
+								placeholder="Enter prompt"
+							/>
+						</FormControl>
 
 						{/* Optimize Dialog */}
 						<Dialog
@@ -1391,24 +1431,50 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							</DialogActions>
 						</Dialog>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Introduction"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.introduction || ""}
-							onChange={handleTextChange("introduction")}
-							placeholder="Enter introduction message"
-							required
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Introduction
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.introduction}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								label="Introduction"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.introduction || ""}
+								onChange={handleTextChange("introduction")}
+								placeholder="Enter introduction message"
+								required
+							/>
+						</FormControl>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
 							<Divider>
 								<Chip label="Questions" />
+								<Tooltip
+									title={propertyTooltips.questions}
+									arrow
+									placement="top"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Divider>
 						</Box>
 
@@ -1433,6 +1499,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										newQuestions[index] = e.target.value;
 										updateSettings("questions", newQuestions);
 									}}
+									placeholder="Enter question"
 								/>
 								<Box sx={{ display: "flex", ml: 1 }}>
 									{(localSettings.questions || [""]).length > 1 && (
@@ -1472,20 +1539,36 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							</Button>
 						</Box>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Goodbye Message"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.goodByeMessage || ""}
-							onChange={handleTextChange("goodByeMessage")}
-							placeholder="Enter goodbye message"
-							required
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Goodbye Message
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.goodByeMessage}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								label="Goodbye Message"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.goodByeMessage || ""}
+								onChange={handleTextChange("goodByeMessage")}
+								placeholder="Enter goodbye message"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 
