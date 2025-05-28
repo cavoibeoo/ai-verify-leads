@@ -48,7 +48,12 @@ import {
 	openGoogleCalendarConnect,
 } from "@/services/googleCalendarServices";
 import { toast } from "react-toastify";
-import { callLead, LeadData, updateFlow } from "@/services/flowServices";
+import {
+	callLead,
+	LeadData,
+	updateFlow,
+	optimizePrompt,
+} from "@/services/flowServices";
 import { useReactFlow } from "@xyflow/react";
 
 type PropertiesPanelProps = {
@@ -955,6 +960,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	// --- Added for Optimize Dialog ---
 	const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
 	const [optimizedPrompt, setOptimizedPrompt] = useState<string>("");
+	const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
 
 	if (!selectedNode) {
 		return null;
@@ -1243,9 +1249,28 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 		setOptimizeDialogOpen(false);
 	};
 
-	const handleOptimizePrompt = () => {
-		// Simulate optimization (replace with real logic if needed)
-		setOptimizedPrompt((prev) => prev + " (Optimized)");
+	const handleOptimizePrompt = async () => {
+		if (!localSettings.prompt) {
+			toast.error("Please enter a prompt to optimize.");
+			return;
+		}
+		setIsOptimizing(true);
+		try {
+			const result = await optimizePrompt(localSettings.prompt);
+			if (result && typeof result === "string") {
+				setOptimizedPrompt(result);
+				toast.success("Prompt optimized!");
+			} else if (result?.optimizedPrompt) {
+				setOptimizedPrompt(result.optimizedPrompt);
+				toast.success("Prompt optimized!");
+			} else {
+				toast.error("Failed to optimize prompt.");
+			}
+		} catch (error) {
+			toast.error("Failed to optimize prompt.");
+		} finally {
+			setIsOptimizing(false);
+		}
 	};
 
 	const handleUseOptimizedPrompt = () => {
@@ -1338,8 +1363,9 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									onClick={handleOptimizePrompt}
 									variant="contained"
 									size="small"
+									disabled={isOptimizing}
 								>
-									Optimize
+									{isOptimizing ? <CircularProgress size={20} /> : "Optimize"}
 								</Button>
 							</DialogTitle>
 							<DialogContent>
