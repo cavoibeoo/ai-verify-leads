@@ -56,6 +56,7 @@ import {
 	optimizePrompt,
 } from "@/services/flowServices";
 import { useReactFlow } from "@xyflow/react";
+import { getNodeIcon } from "@/utils/nodeUtils";
 
 type PropertiesPanelProps = {
 	selectedNode: Node | null;
@@ -2558,10 +2559,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			</Box>
 
 			<NodeInfoCard className="transcript-bg">
-				<Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-					<NodeColorIndicator
-						bgcolor={String(selectedNode.data?.color) || "#94a3b8"}
-					/>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+					{getNodeIcon(String(selectedNode.type))}
 					<Typography variant="subtitle2">
 						{String(selectedNode.type) || "Unknown Node"}
 					</Typography>
