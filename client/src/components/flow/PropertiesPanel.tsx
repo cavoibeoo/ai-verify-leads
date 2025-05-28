@@ -952,6 +952,18 @@ const propertyTooltips = {
 	goodByeMessage:
 		"Closing message for the call. Example: 'Thank you for your time! We will be in touch soon.'",
 	language: "Select the language for the AI call. Supported: English.",
+	// Pre-verify tooltips:
+	enableWebScraping:
+		"Enable to use web scraping for additional lead verification based on online data.",
+	webScrapingPrompt:
+		"Describe what information to extract from the web for verification. Example: 'Check if the company website lists a valid phone number.'",
+	criteriaField: "The field to check, e.g., 'email', 'phone', or 'company'.",
+	criteriaType:
+		"The data type of the field, e.g., string, number, email, phone, date, boolean.",
+	criteriaOperator:
+		"How to compare the field, e.g., equals, contains, is valid, is empty, etc.",
+	criteriaValue:
+		"The value to compare against. Example: 'gmail.com' for email domain, or a minimum number for budget.",
 };
 
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
@@ -1342,7 +1354,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							<Select
 								value={localSettings.language || "vietnamese"}
 								onChange={handleSelectChange("language")}
-								label="Language"
 							>
 								<MenuItem value="english">English</MenuItem>
 							</Select>
@@ -1930,13 +1941,10 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "preVerify":
 				return (
 					<>
-						{" "}
 						<Typography variant="subtitle2" gutterBottom>
-							{" "}
-							Configure Pre-verification Criteria{" "}
-						</Typography>{" "}
+							Configure Pre-verification Criteria
+						</Typography>
 						<Box sx={{ mt: 2, mb: 3 }}>
-							{" "}
 							<FormControlLabel
 								control={
 									<Checkbox
@@ -1947,24 +1955,55 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										size="small"
 									/>
 								}
-								label="Enable Web Scraping Verification"
-							/>{" "}
+								label={
+									<Box sx={{ display: "flex", alignItems: "center" }}>
+										<span>Enable Web Scraping Verification</span>
+										<Tooltip
+											title={propertyTooltips.enableWebScraping}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
+								}
+							/>
 							{localSettings.enableWebScraping && (
-								<TextField
-									fullWidth
-									size="small"
-									label="Web Scraping Prompt"
-									variant="outlined"
-									margin="normal"
-									multiline
-									minRows={3}
-									maxRows={10}
-									value={localSettings.webScrapingPrompt || ""}
-									onChange={handleTextChange("webScrapingPrompt")}
-									placeholder="Enter prompt for web scraping verification"
-									helperText="This prompt will be used to give criteras for the web scraping verification process"
-								/>
-							)}{" "}
+								<FormControl fullWidth margin="normal" size="small">
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Web Scraping Prompt
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.webScrapingPrompt}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
+									<TextField
+										fullWidth
+										size="small"
+										label="Web Scraping Prompt"
+										variant="outlined"
+										margin="normal"
+										multiline
+										minRows={3}
+										maxRows={10}
+										value={localSettings.webScrapingPrompt || ""}
+										onChange={handleTextChange("webScrapingPrompt")}
+										placeholder="Enter prompt for web scraping verification"
+										helperText="This prompt will be used to give criteras for the web scraping verification process"
+									/>
+								</FormControl>
+							)}
 						</Box>
 						<Divider sx={{ my: 2 }}>
 							<Chip label="Field Criteria" />
@@ -1980,14 +2019,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								},
 							]
 						).map((criterion, index) => (
-							<Box
-								key={index}
-								sx={{
-									p: 2,
-									mb: 2,
-								}}
-								className="criteria-info"
-							>
+							<Box key={index} sx={{ p: 2, mb: 2 }} className="criteria-info">
 								<Box
 									sx={{
 										display: "flex",
@@ -2012,31 +2044,58 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										</IconButton>
 									)}
 								</Box>
-
-								<TextField
-									fullWidth
-									size="small"
-									label="Field"
-									required
-									variant="outlined"
-									margin="normal"
-									multiline
-									minRows={1}
-									maxRows={10}
-									value={criterion.field || ""}
-									onChange={(e) => {
-										const newCriteria = [...(localSettings.criteria || [])];
-										newCriteria[index] = {
-											...newCriteria[index],
-											field: e.target.value,
-										};
-										updateSettings("criteria", newCriteria);
-									}}
-									placeholder="Enter field name (e.g. email, phone)"
-								/>
-
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel required>Type</InputLabel>
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Field *
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.criteriaField}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
+									<TextField
+										fullWidth
+										size="small"
+										required
+										variant="outlined"
+										multiline
+										minRows={1}
+										maxRows={10}
+										value={criterion.field || ""}
+										onChange={(e) => {
+											const newCriteria = [...(localSettings.criteria || [])];
+											newCriteria[index] = {
+												...newCriteria[index],
+												field: e.target.value,
+											};
+											updateSettings("criteria", newCriteria);
+										}}
+										placeholder="Enter field name (e.g. email, phone)"
+									/>
+								</FormControl>
+								<FormControl fullWidth margin="normal" size="small">
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Type *
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.criteriaType}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
 									<Select
 										value={criterion.type || "string"}
 										onChange={(e) => {
@@ -2054,7 +2113,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 											};
 											updateSettings("criteria", newCriteria);
 										}}
-										label="Type"
 									>
 										<MenuItem value="string">String</MenuItem>
 										<MenuItem value="number">Number</MenuItem>
@@ -2064,9 +2122,22 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										<MenuItem value="boolean">Boolean</MenuItem>
 									</Select>
 								</FormControl>
-
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel required>Operator</InputLabel>
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Operator *
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.criteriaOperator}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
 									<Select
 										value={criterion.operator || "equals"}
 										onChange={(e) => {
@@ -2081,7 +2152,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 											};
 											updateSettings("criteria", newCriteria);
 										}}
-										label="Operator"
 									>
 										{getOperatorsForType(criterion.type || "string").map(
 											(op) => (
@@ -2092,50 +2162,68 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										)}
 									</Select>
 								</FormControl>
-
 								{shouldShowValueInput(criterion.operator || "equals") && (
-									<TextField
-										fullWidth
-										size="small"
-										label="Value"
-										variant="outlined"
-										margin="normal"
-										type={
-											criterion.type === "number"
-												? "number"
-												: criterion.type === "date"
-												? "date"
-												: "text"
-										}
-										value={criterion.value || ""}
-										onChange={(e) => {
-											const newCriteria = [...(localSettings.criteria || [])];
-											let newValue: string | number | boolean = e.target.value;
-
-											// Convert value based on type
-											if (criterion.type === "number" && e.target.value) {
-												newValue = Number(e.target.value);
-											} else if (criterion.type === "boolean") {
-												newValue = e.target.value === "true";
+									<FormControl fullWidth margin="normal" size="small">
+										<Box
+											sx={{ display: "flex", alignItems: "center", mb: 0.5 }}
+										>
+											<Typography variant="body2" sx={{ fontWeight: 500 }}>
+												Value
+											</Typography>
+											<Tooltip
+												title={propertyTooltips.criteriaValue}
+												arrow
+												placement="right"
+												enterDelay={300}
+											>
+												<IconButton size="small" sx={{ ml: 0.5 }}>
+													<HelpOutline fontSize="small" color="primary" />
+												</IconButton>
+											</Tooltip>
+										</Box>
+										<TextField
+											fullWidth
+											size="small"
+											label="Value"
+											variant="outlined"
+											type={
+												criterion.type === "number"
+													? "number"
+													: criterion.type === "date"
+													? "date"
+													: "text"
 											}
+											value={criterion.value || ""}
+											onChange={(e) => {
+												const newCriteria = [...(localSettings.criteria || [])];
+												let newValue: string | number | boolean =
+													e.target.value;
 
-											newCriteria[index] = {
-												...newCriteria[index],
-												value: newValue,
-											};
-											updateSettings("criteria", newCriteria);
-										}}
-										placeholder={
-											criterion.type === "date"
-												? "Select date"
-												: criterion.type === "number"
-												? "Enter numeric value"
-												: "Enter comparison value"
-										}
-										InputLabelProps={
-											criterion.type === "date" ? { shrink: true } : undefined
-										}
-									/>
+												// Convert value based on type
+												if (criterion.type === "number" && e.target.value) {
+													newValue = Number(e.target.value);
+												} else if (criterion.type === "boolean") {
+													newValue = e.target.value === "true";
+												}
+
+												newCriteria[index] = {
+													...newCriteria[index],
+													value: newValue,
+												};
+												updateSettings("criteria", newCriteria);
+											}}
+											placeholder={
+												criterion.type === "date"
+													? "Select date"
+													: criterion.type === "number"
+													? "Enter numeric value"
+													: "Enter comparison value"
+											}
+											InputLabelProps={
+												criterion.type === "date" ? { shrink: true } : undefined
+											}
+										/>
+									</FormControl>
 								)}
 							</Box>
 						))}
