@@ -964,6 +964,19 @@ const propertyTooltips = {
 		"How to compare the field, e.g., equals, contains, is valid, is empty, etc.",
 	criteriaValue:
 		"The value to compare against. Example: 'gmail.com' for email domain, or a minimum number for budget.",
+	// Google Calendar tooltips:
+	calendarConnection:
+		"Select or connect your Google Calendar account to sync events.",
+	calendarName:
+		"Name of the calendar to use for scheduling meetings. Example: 'Sales Team Calendar'.",
+	eventName:
+		"Title for the scheduled event. Example: 'Consultation Call with Lead'.",
+	startWorkDay:
+		"The first day of the work week for scheduling. Example: Monday.",
+	endWorkDay: "The last day of the work week for scheduling. Example: Friday.",
+	startTime: "The earliest time meetings can be scheduled. Example: 09:00.",
+	endTime: "The latest time meetings can be scheduled. Example: 17:00.",
+	duration: "Length of each meeting in minutes. Example: 30.",
 };
 
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
@@ -1583,49 +1596,120 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "googleCalendar":
 				return (
 					<>
-						<CalendarConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Google Calendar Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.calendarConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<CalendarConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Calendar Name"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.calendarName || ""}
-							onChange={handleTextChange("calendarName")}
-							placeholder="Enter calendar name"
-							required
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Calendar Name *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.calendarName}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.calendarName || ""}
+								onChange={handleTextChange("calendarName")}
+								placeholder="Enter calendar name"
+								required
+							/>
+						</FormControl>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Event Name"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.eventName || ""}
-							onChange={handleTextChange("eventName")}
-							placeholder="Enter event name"
-							required
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Event Name *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.eventName}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.eventName || ""}
+								onChange={handleTextChange("eventName")}
+								placeholder="Enter event name"
+								required
+							/>
+						</FormControl>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
 							<Divider>
 								<Chip label="Working Days" />
+								<Tooltip
+									title={propertyTooltips.startWorkDay}
+									arrow
+									placement="top"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Divider>
 						</Box>
 
 						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>Start Work Day</InputLabel>
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Start Work Day *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.startWorkDay}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
 							<Select
 								value={
 									localSettings.startWorkDays !== undefined
@@ -1635,7 +1719,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								onChange={(e) => {
 									updateSettings("startWorkDays", Number(e.target.value));
 								}}
-								label="Start Work Day"
 							>
 								{daysOfWeek.map((day) => (
 									<MenuItem key={day.value} value={day.value}>
@@ -1646,7 +1729,21 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						</FormControl>
 
 						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>End Work Day</InputLabel>
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									End Work Day *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.endWorkDay}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
 							<Select
 								value={
 									localSettings.endWorkDays !== undefined
@@ -1656,7 +1753,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								onChange={(e) => {
 									updateSettings("endWorkDays", Number(e.target.value));
 								}}
-								label="End Work Day"
 							>
 								{daysOfWeek.map((day) => (
 									<MenuItem key={day.value} value={day.value}>
@@ -1669,40 +1765,89 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						<Box sx={{ mt: 2, mb: 1 }}>
 							<Divider>
 								<Chip label="Working Hours" />
+								<Tooltip
+									title={propertyTooltips.startTime}
+									arrow
+									placement="top"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Divider>
 						</Box>
 
 						<Box sx={{ display: "flex", gap: 2 }}>
-							<TextField
-								fullWidth
-								size="small"
-								label="Start Time"
-								type="time"
-								variant="outlined"
-								margin="normal"
-								value={localSettings.startTime || "09:00"}
-								onChange={handleTextChange("startTime")}
-								InputLabelProps={{ shrink: true }}
-								inputProps={{ step: 300 }}
-							/>
-
-							<TextField
-								fullWidth
-								size="small"
-								label="End Time"
-								type="time"
-								variant="outlined"
-								margin="normal"
-								value={localSettings.endTime || "17:00"}
-								onChange={handleTextChange("endTime")}
-								InputLabelProps={{ shrink: true }}
-								inputProps={{ step: 300 }}
-							/>
+							<FormControl fullWidth margin="normal" size="small">
+								<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+									<Typography variant="body2" sx={{ fontWeight: 500 }}>
+										Start Time *
+									</Typography>
+									<Tooltip
+										title={propertyTooltips.startTime}
+										arrow
+										placement="right"
+										enterDelay={300}
+									>
+										<IconButton size="small" sx={{ ml: 0.5 }}>
+											<HelpOutline fontSize="small" color="primary" />
+										</IconButton>
+									</Tooltip>
+								</Box>
+								<TextField
+									fullWidth
+									size="small"
+									type="time"
+									variant="outlined"
+									value={localSettings.startTime || "09:00"}
+									onChange={handleTextChange("startTime")}
+									InputLabelProps={{ shrink: true }}
+									inputProps={{ step: 300 }}
+								/>
+							</FormControl>
+							<FormControl fullWidth margin="normal" size="small">
+								<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+									<Typography variant="body2" sx={{ fontWeight: 500 }}>
+										End Time *
+									</Typography>
+									<Tooltip
+										title={propertyTooltips.endTime}
+										arrow
+										placement="right"
+										enterDelay={300}
+									>
+										<IconButton size="small" sx={{ ml: 0.5 }}>
+											<HelpOutline fontSize="small" color="primary" />
+										</IconButton>
+									</Tooltip>
+								</Box>
+								<TextField
+									fullWidth
+									size="small"
+									type="time"
+									variant="outlined"
+									value={localSettings.endTime || "17:00"}
+									onChange={handleTextChange("endTime")}
+									InputLabelProps={{ shrink: true }}
+									inputProps={{ step: 300 }}
+								/>
+							</FormControl>
 						</Box>
 
 						<Box sx={{ mt: 2, mb: 2 }}>
 							<Typography variant="subtitle2" gutterBottom>
 								Duration (minutes)
+								<Tooltip
+									title={propertyTooltips.duration}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Typography>
 							<Box
 								sx={{
@@ -1726,7 +1871,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								>
 									<Remove />
 								</IconButton>
-
 								<Box
 									sx={{
 										width: "80px",
@@ -1742,7 +1886,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								>
 									{localSettings.duration || 30}
 								</Box>
-
 								<IconButton
 									color="primary"
 									onClick={() => {
