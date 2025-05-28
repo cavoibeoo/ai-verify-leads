@@ -951,8 +951,7 @@ const propertyTooltips = {
 		"List of questions to ask the lead. Example: 'What is your budget? What services are you interested in?' You can add multiple questions.",
 	goodByeMessage:
 		"Closing message for the call. Example: 'Thank you for your time! We will be in touch soon.'",
-	language:
-		"Select the language for the AI call. Supported: English, Vietnamese.",
+	language: "Select the language for the AI call. Supported: English.",
 };
 
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
@@ -1327,7 +1326,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						<FormControl fullWidth margin="normal" size="small">
 							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
-									Language
+									Language *
 								</Typography>
 								<Tooltip
 									title={propertyTooltips.language}
@@ -1362,7 +1361,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						<FormControl fullWidth margin="normal" size="small">
 							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
-									Prompt
+									Prompt *
 								</Typography>
 								<Tooltip
 									title={propertyTooltips.prompt}
@@ -1434,7 +1433,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						<FormControl fullWidth margin="normal" size="small">
 							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
-									Introduction
+									Introduction *
 								</Typography>
 								<Tooltip
 									title={propertyTooltips.introduction}
@@ -1450,7 +1449,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							<TextField
 								fullWidth
 								size="small"
-								label="Introduction"
 								variant="outlined"
 								multiline
 								minRows={1}
@@ -1542,7 +1540,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						<FormControl fullWidth margin="normal" size="small">
 							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
-									Goodbye Message
+									Goodbye Message *
 								</Typography>
 								<Tooltip
 									title={propertyTooltips.goodByeMessage}
@@ -1558,7 +1556,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							<TextField
 								fullWidth
 								size="small"
-								label="Goodbye Message"
 								variant="outlined"
 								multiline
 								minRows={1}
