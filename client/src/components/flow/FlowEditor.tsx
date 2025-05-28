@@ -71,6 +71,7 @@ import {
 	toggleFlowStatus,
 } from "@/services/flowServices";
 import { useTheme } from "@/context/ThemeContext";
+import { NodeTypeProvider, useNodeTypes } from "@/context/NodeTypeContext";
 
 // Define MUI themes
 const getLightTheme = () =>
@@ -190,6 +191,7 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
 	const [showLeadHistory, setShowLeadHistory] = useState<boolean>(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const { nodeTypeMap } = useNodeTypes();
 
 	const fetchFlowData = useCallback(async () => {
 		if (!flowId) return;
@@ -290,71 +292,14 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 
 	// Helper function to get node label based on type
 	const getNodeLabel = (type: string): string => {
-		switch (type) {
-			case "googleSheets":
-				return "Google Sheets";
-			case "getSheetLead":
-				return "Sheet Import";
-			case "exportSheetLead":
-				return "Sheet Export";
-			case "facebookLeadAds":
-				return "Facebook Lead Ads";
-			case "aiCall":
-				return "AI Call";
-			case "googleCalendar":
-				return "Google Calendar";
-			case "sendWebhook":
-				return "Send to webhook";
-			case "condition":
-				return "Condition";
-			case "preVerify":
-				return "Pre-Verify";
-			case "email":
-				return "Send Email";
-			case "sms":
-				return "Send SMS";
-			case "config":
-				return "Configuration";
-			case "error":
-				return "Error Handler";
-			default:
-				console.warn(`Unknown node type: ${type}`);
-				return type || "Unknown Node";
-		}
+		const nodeType = nodeTypeMap[type];
+		return nodeType?.name || type || "Unknown Node";
 	};
 
 	// Helper function to get node description based on type
 	const getNodeDescription = (type: string): string => {
-		switch (type) {
-			case "googleSheets":
-				return "Import leads from Google Sheets";
-			case "getSheetLead":
-				return "Import leads from Sheet files";
-			case "exportSheetLead":
-				return "Export leads to Sheet files";
-			case "facebookLeadAds":
-				return "Import leads from Facebook Lead Ads";
-			case "aiCall":
-				return "Process data with AI";
-			case "googleCalendar":
-				return "Schedule appointments";
-			case "sendWebhook":
-				return "Send lead data to a webhook";
-			case "condition":
-				return "Branch based on conditions";
-			case "preVerify":
-				return "Pre-verify leads before processing";
-			case "email":
-				return "Send email notification";
-			case "sms":
-				return "Send SMS notification";
-			case "config":
-				return "Configure flow settings";
-			case "error":
-				return "Handle errors in the flow";
-			default:
-				return `Node type: ${type}`;
-		}
+		const nodeType = nodeTypeMap[type];
+		return nodeType?.description || `Node type: ${type}`;
 	};
 
 	const onConnect = useCallback(
@@ -964,20 +909,22 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flowId }) => {
 	const theme = isDarkMode ? getDarkTheme() : getLightTheme();
 
 	return (
-		<ThemeProvider theme={theme}>
-			<CssBaseline />
-			<Box
-				sx={{
-					height: "100vh",
-					width: "100%",
-					overflow: "hidden",
-				}}
-			>
-				<ReactFlowProvider>
-					<FlowEditorContent flowId={flowId} />
-				</ReactFlowProvider>
-			</Box>
-		</ThemeProvider>
+		<NodeTypeProvider>
+			<ThemeProvider theme={theme}>
+				<CssBaseline />
+				<Box
+					sx={{
+						height: "100vh",
+						width: "100%",
+						overflow: "hidden",
+					}}
+				>
+					<ReactFlowProvider>
+						<FlowEditorContent flowId={flowId} />
+					</ReactFlowProvider>
+				</Box>
+			</ThemeProvider>
+		</NodeTypeProvider>
 	);
 };
 

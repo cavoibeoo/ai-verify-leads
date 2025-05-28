@@ -12,6 +12,7 @@ import time as time_module
 import datetime
 from datetime import timedelta, time, timezone
 
+
 from tasks.base_tasks_handler import BaseTaskHandler
 from utils.dbUtils import *
 from utils.calendarTimeUtil import *
@@ -60,12 +61,16 @@ def google_calendar(self, message):
         end_time_str = (next_slot + timedelta(minutes=duration_minute)).isoformat()
         event_body = build_event_body(settings, lead, start_time_str, end_time_str, time_zone)
 
-        # Insert calendar event
+        # Insert calendar event with conference data
         event = service.events().insert(
             calendarId='primary',
             body=event_body,
-            conferenceDataVersion=1
+            conferenceDataVersion=1,
+            sendUpdates='all'  # Send invitations to attendees
         ).execute()
+
+        print(f"Event created: {event.get('id')}")
+        print(f"Conference data: {event.get('conferenceData')}")
 
         calendar_link = event.get('htmlLink')
         meet_link = extract_meet_link(event)
@@ -79,7 +84,7 @@ def google_calendar(self, message):
         }
 
     except (socket.timeout, socket.error, TimeoutError, ConnectionError, HttpError) as e:
-        print(f"Network error in google_calendar task: {e}")
+        # print(f"Network error in google_calendar task: {e}")
         countdown = 2 ** self.request.retries
         raise self.retry(exc=e, countdown=countdown)
 
@@ -93,14 +98,21 @@ def google_calendar(self, message):
 
 def build_event_body(settings, lead, start_time_str, end_time_str, time_zone):
     """Build the event body for Google Calendar."""
+    import uuid
+
+    # Create a unique request ID for the conference
+    request_id = str(uuid.uuid4())
+
     conference_data = {
-        'requestId': f"meet-{datetime.datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
-        'conferenceSolutionKey': {
-            'type': 'hangoutsMeet'
+        'createRequest': {
+            'requestId': request_id,
+            'conferenceSolutionKey': {
+                'type': 'hangoutsMeet'
+            }
         }
     }
 
-    return {
+    event_body = {
         'summary': settings.get('eventName', 'No Title'),
         'description': settings.get('description', format_meeting_description(lead["leadData"])),
         'start': {
@@ -120,6 +132,9 @@ def build_event_body(settings, lead, start_time_str, end_time_str, time_zone):
         'conferenceData': conference_data
     }
 
+    # print(f"Event body conference data: {conference_data}")
+    return event_body
+
 
 def format_meeting_description(lead_data):
     lines = []
@@ -132,11 +147,6 @@ def format_meeting_description(lead_data):
     for key, value in lead_data.items():
         if key == "transcript":
             continue  # skip transcript
-        # if key == "custom_fields":
-        #     for custom_key, custom_value in value.items():
-        #         pretty_key = custom_key.replace("_", " ").title()
-        #         lines.append(f"{pretty_key}: {custom_value}")
-        #     continue
         pretty_key = key.replace("_", " ").title()
         lines.append(f"{pretty_key}: {value}")
 
@@ -145,6 +155,8 @@ def format_meeting_description(lead_data):
 
 def extract_meet_link(event):
     """Extract the Google Meet link from the event."""
+    # print(f"Full event object: {json.dumps(event, indent=2, default=str)}")
+
     if 'conferenceData' in event and 'entryPoints' in event['conferenceData']:
         for entry_point in event['conferenceData']['entryPoints']:
             if entry_point.get('entryPointType') == 'video':

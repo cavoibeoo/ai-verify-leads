@@ -18,6 +18,7 @@ router.patch("/enableFlow/:flowId", flowController.activeFlow);
 router.delete("/:flowId", flowController.deleteFlow);
 router.delete("/permanent/:flowId", flowController.permanentDeleteFlow);
 router.post("/resetQueue", flowController.resetQueue);
+router.post("/optimizePrompt", flowController.optimizePrompt);
 
 router.post("/publishLead", async (req, res) => {
     try {

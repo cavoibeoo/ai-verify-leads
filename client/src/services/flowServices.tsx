@@ -227,3 +227,16 @@ export interface LeadData {
 	outreachType?: string;
 	ExtendData?: any;
 }
+
+export const optimizePrompt = async (prompt: string) => {
+	try {
+		const response = await axios.post("/flow/optimizePrompt", { prompt });
+		return response.data.optimizedPrompt || response.data;
+	} catch (error: any) {
+		console.log(error);
+		toast.error(
+			`${error?.response?.data?.message || "Failed to optimize prompt!"}`
+		);
+		return { error };
+	}
+};

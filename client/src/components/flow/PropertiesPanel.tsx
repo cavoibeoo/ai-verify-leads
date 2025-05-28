@@ -34,6 +34,7 @@ import {
 	Call,
 	Remove,
 	Save,
+	HelpOutline,
 } from "@mui/icons-material";
 import {
 	useFacebookConnections,
@@ -48,8 +49,15 @@ import {
 	openGoogleCalendarConnect,
 } from "@/services/googleCalendarServices";
 import { toast } from "react-toastify";
-import { callLead, LeadData, updateFlow } from "@/services/flowServices";
+import {
+	callLead,
+	LeadData,
+	updateFlow,
+	optimizePrompt,
+} from "@/services/flowServices";
 import { useReactFlow } from "@xyflow/react";
+import { getNodeIcon } from "@/utils/nodeUtils";
+import { useNodeTypes } from "@/context/NodeTypeContext";
 
 type PropertiesPanelProps = {
 	selectedNode: Node | null;
@@ -210,8 +218,7 @@ const ConnectionSelect: React.FC<ConnectionSelectProps> = ({
 
 	return (
 		<>
-			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel required>Choose Facebook Connection</InputLabel>
+			<FormControl fullWidth size="small">
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -220,7 +227,6 @@ const ConnectionSelect: React.FC<ConnectionSelectProps> = ({
 								onChange(e.target.value);
 							}
 						}}
-						label="Choose Facebook Connection"
 						disabled={loading}
 						sx={{ flex: 1 }}
 					>
@@ -339,13 +345,11 @@ const PageSelect: React.FC<PageSelectProps> = ({
 	};
 
 	return (
-		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel required>Choose Facebook Page</InputLabel>
+		<FormControl fullWidth size="small" disabled={disabled}>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
-					label="Choose Facebook Page"
 					disabled={loading || disabled}
 					sx={{ flex: 1 }}
 				>
@@ -408,13 +412,11 @@ const FormSelect: React.FC<FormSelectProps> = ({
 	};
 
 	return (
-		<FormControl fullWidth margin="normal" size="small" disabled={disabled}>
-			<InputLabel required>Choose Lead Form</InputLabel>
+		<FormControl fullWidth size="small" disabled={disabled}>
 			<Box sx={{ display: "flex", width: "100%" }}>
 				<Select
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
-					label="Choose Lead Form"
 					disabled={loading || disabled}
 					sx={{ flex: 1 }}
 				>
@@ -730,8 +732,7 @@ const CalendarConnectionSelect: React.FC<CalendarConnectionSelectProps> = ({
 
 	return (
 		<>
-			<FormControl fullWidth margin="normal" size="small">
-				<InputLabel required>Google Calendar Connection</InputLabel>
+			<FormControl fullWidth size="small">
 				<Box sx={{ display: "flex", width: "100%" }}>
 					<Select
 						value={value}
@@ -741,7 +742,6 @@ const CalendarConnectionSelect: React.FC<CalendarConnectionSelectProps> = ({
 								onChange(e.target.value);
 							}
 						}}
-						label="Google Calendar Connection"
 						disabled={loading}
 						sx={{ flex: 1 }}
 					>
@@ -935,6 +935,57 @@ const daysOfWeek = [
 	{ value: 6, label: "Sunday" },
 ];
 
+// Tooltip mapping
+const propertyTooltips = {
+	prompt:
+		"Describe what the AI should say or ask. Example: 'Ask the lead about their business needs.'",
+	introduction:
+		"Opening message for the call. Example: 'Hello, this is Anna from Acme Corp.'",
+	questions:
+		"List of questions to ask the lead. Example: 'What is your budget? What services are you interested in?' You can add multiple questions.",
+	goodByeMessage:
+		"Closing message for the call. Example: 'Thank you for your time! We will be in touch soon.'",
+	language: "Select the language for the AI call. Supported: English.",
+	// Pre-verify tooltips:
+	enableWebScraping:
+		"Enable to use web scraping for additional lead verification based on online data.",
+	webScrapingPrompt:
+		"Describe what information to extract from the web for verification. Example: 'Check if the company website lists a valid phone number.'",
+	criteriaField: "The field to check, e.g., 'email', 'phone', or 'company'.",
+	criteriaType:
+		"The data type of the field, e.g., string, number, email, phone, date, boolean.",
+	criteriaOperator:
+		"How to compare the field, e.g., equals, contains, is valid, is empty, etc.",
+	criteriaValue:
+		"The value to compare against. Example: 'gmail.com' for email domain, or a minimum number for budget.",
+	// Google Calendar tooltips:
+	calendarConnection:
+		"Select or connect your Google Calendar account to sync events.",
+	calendarName:
+		"Name of the calendar to use for scheduling meetings. Example: 'Sales Team Calendar'.",
+	eventName:
+		"Title for the scheduled event. Example: 'Consultation Call with Lead'.",
+	startWorkDay:
+		"The first day of the work week for scheduling. Example: Monday.",
+	endWorkDay: "The last day of the work week for scheduling. Example: Friday.",
+	startTime: "The earliest time meetings can be scheduled. Example: 09:00.",
+	endTime: "The latest time meetings can be scheduled. Example: 17:00.",
+	duration: "Length of each meeting in minutes. Example: 30.",
+	// Facebook Lead Ads tooltips:
+	facebookConnection:
+		"Select or connect your Facebook account to access your pages and forms.",
+	facebookPage: "Choose the Facebook Page that owns the lead form.",
+	facebookForm: "Select the Facebook Lead Form to capture leads from.",
+	// Sheet tooltips:
+	sheetConnection:
+		"Select or connect your Google account to access Google Sheets.",
+	sheetUrl:
+		"Paste the full URL of the Google Sheet to import/export leads. Example: 'https://docs.google.com/spreadsheets/d/...'",
+	// Webhook tooltips:
+	webhookUrl:
+		"The endpoint where lead data will be sent. Must start with http(s)://. Example: 'https://yourdomain.com/webhook'",
+};
+
 const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	selectedNode,
 	onChange,
@@ -951,6 +1002,12 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	const [isSaving, setIsSaving] = useState<boolean>(false);
 	const reactFlowInstance = useReactFlow();
 	const [subscribing, setSubscribing] = useState(false);
+	const { nodeTypeMap } = useNodeTypes();
+
+	// --- Added for Optimize Dialog ---
+	const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
+	const [optimizedPrompt, setOptimizedPrompt] = useState<string>("");
+	const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
 
 	if (!selectedNode) {
 		return null;
@@ -1080,6 +1137,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 	};
 
 	const handleSaveChanges = async () => {
+		if (!validateSettings()) {
+			toast.error("Please fill in all required fields before saving.");
+			return;
+		}
+
 		if (selectedNode.type === "facebookLeadAds" && localSettings.pageId) {
 			setIsSaving(true);
 			try {
@@ -1194,7 +1256,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 					!!localSettings.introduction &&
 					Array.isArray(localSettings.questions) &&
 					localSettings.questions.length > 0 &&
-					localSettings.questions.every((q) => q && q.trim() !== "")
+					localSettings.questions.every((q) => q && q.trim() !== "") &&
+					!!localSettings.goodByeMessage
 				);
 			case "preVerify":
 				return (
@@ -1224,6 +1287,44 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 		}
 	};
 
+	const handleOpenOptimizeDialog = () => {
+		setOptimizedPrompt(localSettings.prompt || "");
+		setOptimizeDialogOpen(true);
+	};
+
+	const handleCloseOptimizeDialog = () => {
+		setOptimizeDialogOpen(false);
+	};
+
+	const handleOptimizePrompt = async () => {
+		if (!localSettings.prompt) {
+			toast.error("Please enter a prompt to optimize.");
+			return;
+		}
+		setIsOptimizing(true);
+		try {
+			const result = await optimizePrompt(localSettings.prompt);
+			if (result && typeof result === "string") {
+				setOptimizedPrompt(result);
+				toast.success("Prompt optimized!");
+			} else if (result?.optimizedPrompt) {
+				setOptimizedPrompt(result.optimizedPrompt);
+				toast.success("Prompt optimized!");
+			} else {
+				toast.error("Failed to optimize prompt.");
+			}
+		} catch (error) {
+			toast.error("Failed to optimize prompt.");
+		} finally {
+			setIsOptimizing(false);
+		}
+	};
+
+	const handleUseOptimizedPrompt = () => {
+		updateSettings("prompt", optimizedPrompt);
+		setOptimizeDialogOpen(false);
+	};
+
 	const renderSettings = () => {
 		const nodeType = selectedNode.type || "default";
 
@@ -1231,24 +1332,75 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "facebookLeadAds":
 				return (
 					<>
-						<ConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Facebook Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.facebookConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<ConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
 
-						<PageSelect
-							connection={localSettings.connection}
-							value={localSettings.pageId || ""}
-							onChange={(value) => updateSettings("pageId", value)}
-							disabled={!localSettings.connection}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Facebook Page *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.facebookPage}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<PageSelect
+								connection={localSettings.connection}
+								value={localSettings.pageId || ""}
+								onChange={(value) => updateSettings("pageId", value)}
+								disabled={!localSettings.connection}
+							/>
+						</FormControl>
 
-						<FormSelect
-							pageId={localSettings.pageId}
-							value={localSettings.formId || ""}
-							onChange={(value) => updateSettings("formId", value)}
-							disabled={!localSettings.pageId}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Lead Form *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.facebookForm}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<FormSelect
+								pageId={localSettings.pageId}
+								value={localSettings.formId || ""}
+								onChange={(value) => updateSettings("formId", value)}
+								disabled={!localSettings.pageId}
+							/>
+						</FormControl>
 					</>
 				);
 
@@ -1256,48 +1408,154 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 				return (
 					<>
 						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>Language</InputLabel>
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Language *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.language}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
 							<Select
 								value={localSettings.language || "vietnamese"}
 								onChange={handleSelectChange("language")}
-								label="Language"
 							>
-								<MenuItem value="vietnamese">Tiếng Việt</MenuItem>
 								<MenuItem value="english">English</MenuItem>
 							</Select>
 						</FormControl>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Prompt"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.prompt || ""}
-							onChange={handleTextChange("prompt")}
-							placeholder="Enter prompt"
-						/>
+						{/* Optimize Button above Prompt */}
+						<Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+							<Button
+								variant="outlined"
+								size="small"
+								onClick={handleOpenOptimizeDialog}
+							>
+								Optimize
+							</Button>
+						</Box>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Prompt *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.prompt}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.prompt || ""}
+								onChange={handleTextChange("prompt")}
+								placeholder="Enter prompt"
+							/>
+						</FormControl>
 
-						<TextField
+						{/* Optimize Dialog */}
+						<Dialog
+							open={optimizeDialogOpen}
+							onClose={handleCloseOptimizeDialog}
+							maxWidth="sm"
 							fullWidth
-							size="small"
-							label="Introduction"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.introduction || ""}
-							onChange={handleTextChange("introduction")}
-							placeholder="Enter introduction message"
-							required
-						/>
+						>
+							<DialogTitle
+								sx={{
+									display: "flex",
+									justifyContent: "space-between",
+									alignItems: "center",
+								}}
+							>
+								Optimize Prompt
+								<Button
+									onClick={handleOptimizePrompt}
+									variant="contained"
+									size="small"
+									disabled={isOptimizing}
+								>
+									{isOptimizing ? <CircularProgress size={20} /> : "Optimize"}
+								</Button>
+							</DialogTitle>
+							<DialogContent>
+								<TextField
+									fullWidth
+									label="Prompt"
+									multiline
+									minRows={4}
+									maxRows={12}
+									value={optimizedPrompt}
+									onChange={(e) => setOptimizedPrompt(e.target.value)}
+									margin="normal"
+								/>
+							</DialogContent>
+							<DialogActions sx={{ justifyContent: "center" }}>
+								<Button
+									variant="contained"
+									color="primary"
+									onClick={handleUseOptimizedPrompt}
+								>
+									Use the optimized prompt
+								</Button>
+							</DialogActions>
+						</Dialog>
+
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Introduction *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.introduction}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.introduction || ""}
+								onChange={handleTextChange("introduction")}
+								placeholder="Enter introduction message"
+								required
+							/>
+						</FormControl>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
 							<Divider>
 								<Chip label="Questions" />
+								<Tooltip
+									title={propertyTooltips.questions}
+									arrow
+									placement="top"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Divider>
 						</Box>
 
@@ -1322,6 +1580,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										newQuestions[index] = e.target.value;
 										updateSettings("questions", newQuestions);
 									}}
+									placeholder="Enter question"
 								/>
 								<Box sx={{ display: "flex", ml: 1 }}>
 									{(localSettings.questions || [""]).length > 1 && (
@@ -1361,68 +1620,145 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							</Button>
 						</Box>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Goodbye Message"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.goodByeMessage || ""}
-							onChange={handleTextChange("goodByeMessage")}
-							placeholder="Enter goodbye message"
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Goodbye Message *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.goodByeMessage}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.goodByeMessage || ""}
+								onChange={handleTextChange("goodByeMessage")}
+								placeholder="Enter goodbye message"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 
 			case "googleCalendar":
 				return (
 					<>
-						<CalendarConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Google Calendar Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.calendarConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<CalendarConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Calendar Name"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.calendarName || ""}
-							onChange={handleTextChange("calendarName")}
-							placeholder="Enter calendar name"
-							required
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Calendar Name *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.calendarName}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.calendarName || ""}
+								onChange={handleTextChange("calendarName")}
+								placeholder="Enter calendar name"
+								required
+							/>
+						</FormControl>
 
-						<TextField
-							fullWidth
-							size="small"
-							label="Event Name"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.eventName || ""}
-							onChange={handleTextChange("eventName")}
-							placeholder="Enter event name"
-							required
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Event Name *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.eventName}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								variant="outlined"
+								multiline
+								minRows={1}
+								maxRows={10}
+								value={localSettings.eventName || ""}
+								onChange={handleTextChange("eventName")}
+								placeholder="Enter event name"
+								required
+							/>
+						</FormControl>
 
 						<Box sx={{ mt: 2, mb: 1 }}>
 							<Divider>
 								<Chip label="Working Days" />
+								<Tooltip
+									title={propertyTooltips.startWorkDay}
+									arrow
+									placement="top"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Divider>
 						</Box>
 
 						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>Start Work Day</InputLabel>
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Start Work Day *
+								</Typography>
+							</Box>
 							<Select
 								value={
 									localSettings.startWorkDays !== undefined
@@ -1432,7 +1768,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								onChange={(e) => {
 									updateSettings("startWorkDays", Number(e.target.value));
 								}}
-								label="Start Work Day"
 							>
 								{daysOfWeek.map((day) => (
 									<MenuItem key={day.value} value={day.value}>
@@ -1443,7 +1778,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						</FormControl>
 
 						<FormControl fullWidth margin="normal" size="small">
-							<InputLabel>End Work Day</InputLabel>
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									End Work Day *
+								</Typography>
+							</Box>
 							<Select
 								value={
 									localSettings.endWorkDays !== undefined
@@ -1453,7 +1792,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								onChange={(e) => {
 									updateSettings("endWorkDays", Number(e.target.value));
 								}}
-								label="End Work Day"
 							>
 								{daysOfWeek.map((day) => (
 									<MenuItem key={day.value} value={day.value}>
@@ -1466,40 +1804,69 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 						<Box sx={{ mt: 2, mb: 1 }}>
 							<Divider>
 								<Chip label="Working Hours" />
+								<Tooltip
+									title={propertyTooltips.startTime}
+									arrow
+									placement="top"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Divider>
 						</Box>
 
 						<Box sx={{ display: "flex", gap: 2 }}>
-							<TextField
-								fullWidth
-								size="small"
-								label="Start Time"
-								type="time"
-								variant="outlined"
-								margin="normal"
-								value={localSettings.startTime || "09:00"}
-								onChange={handleTextChange("startTime")}
-								InputLabelProps={{ shrink: true }}
-								inputProps={{ step: 300 }}
-							/>
-
-							<TextField
-								fullWidth
-								size="small"
-								label="End Time"
-								type="time"
-								variant="outlined"
-								margin="normal"
-								value={localSettings.endTime || "17:00"}
-								onChange={handleTextChange("endTime")}
-								InputLabelProps={{ shrink: true }}
-								inputProps={{ step: 300 }}
-							/>
+							<FormControl fullWidth margin="normal" size="small">
+								<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+									<Typography variant="body2" sx={{ fontWeight: 500 }}>
+										Start Time *
+									</Typography>
+								</Box>
+								<TextField
+									fullWidth
+									size="small"
+									type="time"
+									variant="outlined"
+									value={localSettings.startTime || "09:00"}
+									onChange={handleTextChange("startTime")}
+									InputLabelProps={{ shrink: true }}
+									inputProps={{ step: 300 }}
+								/>
+							</FormControl>
+							<FormControl fullWidth margin="normal" size="small">
+								<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+									<Typography variant="body2" sx={{ fontWeight: 500 }}>
+										End Time *
+									</Typography>
+								</Box>
+								<TextField
+									fullWidth
+									size="small"
+									type="time"
+									variant="outlined"
+									value={localSettings.endTime || "17:00"}
+									onChange={handleTextChange("endTime")}
+									InputLabelProps={{ shrink: true }}
+									inputProps={{ step: 300 }}
+								/>
+							</FormControl>
 						</Box>
 
 						<Box sx={{ mt: 2, mb: 2 }}>
 							<Typography variant="subtitle2" gutterBottom>
 								Duration (minutes)
+								<Tooltip
+									title={propertyTooltips.duration}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
 							</Typography>
 							<Box
 								sx={{
@@ -1523,7 +1890,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								>
 									<Remove />
 								</IconButton>
-
 								<Box
 									sx={{
 										width: "80px",
@@ -1539,7 +1905,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								>
 									{localSettings.duration || 30}
 								</Box>
-
 								<IconButton
 									color="primary"
 									onClick={() => {
@@ -1567,30 +1932,43 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "sendWebhook":
 				return (
 					<>
-						<TextField
-							fullWidth
-							size="small"
-							label="Webhook URL"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.webhookUrl || ""}
-							onChange={(e) => {
-								let value = e.target.value;
-								if (
-									value &&
-									!(value.startsWith("http://") || value.startsWith("https://"))
-								) {
-									value = "https://" + value;
-								}
-								updateSettings("webhookUrl", value);
-							}}
-							placeholder="Enter webhook URL"
-							required
-							helperText="The URL where lead data will be sent"
-						/>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Webhook URL *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.webhookUrl}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.webhookUrl || ""}
+								onChange={(e) => {
+									let value = e.target.value;
+									if (
+										value &&
+										!(
+											value.startsWith("http://") ||
+											value.startsWith("https://")
+										)
+									) {
+										value = "https://" + value;
+									}
+									updateSettings("webhookUrl", value);
+								}}
+								placeholder="Enter webhook URL"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 
@@ -1687,64 +2065,115 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			case "exportSheetLead":
 				return (
 					<>
-						{" "}
-						<CalendarConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>{" "}
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet URL"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetUrl || ""}
-							onChange={handleTextChange("sheetUrl")}
-							placeholder="Enter Google Sheet URL"
-							required
-							helperText="The URL of the Google Sheet to export data to"
-						/>{" "}
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Google Account Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<CalendarConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
+
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Sheet URL *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetUrl}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.sheetUrl || ""}
+								onChange={handleTextChange("sheetUrl")}
+								placeholder="Enter Google Sheet URL"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 
 			case "getSheetLead":
 				return (
 					<>
-						{" "}
-						<CalendarConnectionSelect
-							value={localSettings.connection || ""}
-							onChange={(value) => updateSettings("connection", value)}
-						/>{" "}
-						<TextField
-							fullWidth
-							size="small"
-							label="Sheet URL"
-							variant="outlined"
-							margin="normal"
-							multiline
-							minRows={1}
-							maxRows={10}
-							value={localSettings.sheetUrl || ""}
-							onChange={handleTextChange("sheetUrl")}
-							placeholder="Enter Google Sheet URL"
-							required
-							helperText="The URL of the Google Sheet to import data from"
-						/>{" "}
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Google Account Connection *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetConnection}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<CalendarConnectionSelect
+								value={localSettings.connection || ""}
+								onChange={(value) => updateSettings("connection", value)}
+							/>
+						</FormControl>
+
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Sheet URL *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetUrl}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.sheetUrl || ""}
+								onChange={handleTextChange("sheetUrl")}
+								placeholder="Enter Google Sheet URL"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 			case "preVerify":
 				return (
 					<>
-						{" "}
 						<Typography variant="subtitle2" gutterBottom>
-							{" "}
-							Configure Pre-verification Criteria{" "}
-						</Typography>{" "}
+							Configure Pre-verification Criteria
+						</Typography>
 						<Box sx={{ mt: 2, mb: 3 }}>
-							{" "}
 							<FormControlLabel
 								control={
 									<Checkbox
@@ -1755,24 +2184,55 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										size="small"
 									/>
 								}
-								label="Enable Web Scraping Verification"
-							/>{" "}
+								label={
+									<Box sx={{ display: "flex", alignItems: "center" }}>
+										<span>Enable Web Scraping Verification</span>
+										<Tooltip
+											title={propertyTooltips.enableWebScraping}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
+								}
+							/>
 							{localSettings.enableWebScraping && (
-								<TextField
-									fullWidth
-									size="small"
-									label="Web Scraping Prompt"
-									variant="outlined"
-									margin="normal"
-									multiline
-									minRows={3}
-									maxRows={10}
-									value={localSettings.webScrapingPrompt || ""}
-									onChange={handleTextChange("webScrapingPrompt")}
-									placeholder="Enter prompt for web scraping verification"
-									helperText="This prompt will be used to give criteras for the web scraping verification process"
-								/>
-							)}{" "}
+								<FormControl fullWidth margin="normal" size="small">
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Web Scraping Prompt
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.webScrapingPrompt}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
+									<TextField
+										fullWidth
+										size="small"
+										label="Web Scraping Prompt"
+										variant="outlined"
+										margin="normal"
+										multiline
+										minRows={3}
+										maxRows={10}
+										value={localSettings.webScrapingPrompt || ""}
+										onChange={handleTextChange("webScrapingPrompt")}
+										placeholder="Enter prompt for web scraping verification"
+										helperText="This prompt will be used to give criteras for the web scraping verification process"
+									/>
+								</FormControl>
+							)}
 						</Box>
 						<Divider sx={{ my: 2 }}>
 							<Chip label="Field Criteria" />
@@ -1788,14 +2248,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								},
 							]
 						).map((criterion, index) => (
-							<Box
-								key={index}
-								sx={{
-									p: 2,
-									mb: 2,
-								}}
-								className="criteria-info"
-							>
+							<Box key={index} sx={{ p: 2, mb: 2 }} className="criteria-info">
 								<Box
 									sx={{
 										display: "flex",
@@ -1820,31 +2273,58 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										</IconButton>
 									)}
 								</Box>
-
-								<TextField
-									fullWidth
-									size="small"
-									label="Field"
-									required
-									variant="outlined"
-									margin="normal"
-									multiline
-									minRows={1}
-									maxRows={10}
-									value={criterion.field || ""}
-									onChange={(e) => {
-										const newCriteria = [...(localSettings.criteria || [])];
-										newCriteria[index] = {
-											...newCriteria[index],
-											field: e.target.value,
-										};
-										updateSettings("criteria", newCriteria);
-									}}
-									placeholder="Enter field name (e.g. email, phone)"
-								/>
-
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel required>Type</InputLabel>
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Field *
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.criteriaField}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
+									<TextField
+										fullWidth
+										size="small"
+										required
+										variant="outlined"
+										multiline
+										minRows={1}
+										maxRows={10}
+										value={criterion.field || ""}
+										onChange={(e) => {
+											const newCriteria = [...(localSettings.criteria || [])];
+											newCriteria[index] = {
+												...newCriteria[index],
+												field: e.target.value,
+											};
+											updateSettings("criteria", newCriteria);
+										}}
+										placeholder="Enter field name (e.g. email, phone)"
+									/>
+								</FormControl>
+								<FormControl fullWidth margin="normal" size="small">
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Type *
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.criteriaType}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
 									<Select
 										value={criterion.type || "string"}
 										onChange={(e) => {
@@ -1862,7 +2342,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 											};
 											updateSettings("criteria", newCriteria);
 										}}
-										label="Type"
 									>
 										<MenuItem value="string">String</MenuItem>
 										<MenuItem value="number">Number</MenuItem>
@@ -1872,9 +2351,22 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										<MenuItem value="boolean">Boolean</MenuItem>
 									</Select>
 								</FormControl>
-
 								<FormControl fullWidth margin="normal" size="small">
-									<InputLabel required>Operator</InputLabel>
+									<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+										<Typography variant="body2" sx={{ fontWeight: 500 }}>
+											Operator *
+										</Typography>
+										<Tooltip
+											title={propertyTooltips.criteriaOperator}
+											arrow
+											placement="right"
+											enterDelay={300}
+										>
+											<IconButton size="small" sx={{ ml: 0.5 }}>
+												<HelpOutline fontSize="small" color="primary" />
+											</IconButton>
+										</Tooltip>
+									</Box>
 									<Select
 										value={criterion.operator || "equals"}
 										onChange={(e) => {
@@ -1889,7 +2381,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 											};
 											updateSettings("criteria", newCriteria);
 										}}
-										label="Operator"
 									>
 										{getOperatorsForType(criterion.type || "string").map(
 											(op) => (
@@ -1900,50 +2391,68 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 										)}
 									</Select>
 								</FormControl>
-
 								{shouldShowValueInput(criterion.operator || "equals") && (
-									<TextField
-										fullWidth
-										size="small"
-										label="Value"
-										variant="outlined"
-										margin="normal"
-										type={
-											criterion.type === "number"
-												? "number"
-												: criterion.type === "date"
-												? "date"
-												: "text"
-										}
-										value={criterion.value || ""}
-										onChange={(e) => {
-											const newCriteria = [...(localSettings.criteria || [])];
-											let newValue: string | number | boolean = e.target.value;
-
-											// Convert value based on type
-											if (criterion.type === "number" && e.target.value) {
-												newValue = Number(e.target.value);
-											} else if (criterion.type === "boolean") {
-												newValue = e.target.value === "true";
+									<FormControl fullWidth margin="normal" size="small">
+										<Box
+											sx={{ display: "flex", alignItems: "center", mb: 0.5 }}
+										>
+											<Typography variant="body2" sx={{ fontWeight: 500 }}>
+												Value
+											</Typography>
+											<Tooltip
+												title={propertyTooltips.criteriaValue}
+												arrow
+												placement="right"
+												enterDelay={300}
+											>
+												<IconButton size="small" sx={{ ml: 0.5 }}>
+													<HelpOutline fontSize="small" color="primary" />
+												</IconButton>
+											</Tooltip>
+										</Box>
+										<TextField
+											fullWidth
+											size="small"
+											label="Value"
+											variant="outlined"
+											type={
+												criterion.type === "number"
+													? "number"
+													: criterion.type === "date"
+													? "date"
+													: "text"
 											}
+											value={criterion.value || ""}
+											onChange={(e) => {
+												const newCriteria = [...(localSettings.criteria || [])];
+												let newValue: string | number | boolean =
+													e.target.value;
 
-											newCriteria[index] = {
-												...newCriteria[index],
-												value: newValue,
-											};
-											updateSettings("criteria", newCriteria);
-										}}
-										placeholder={
-											criterion.type === "date"
-												? "Select date"
-												: criterion.type === "number"
-												? "Enter numeric value"
-												: "Enter comparison value"
-										}
-										InputLabelProps={
-											criterion.type === "date" ? { shrink: true } : undefined
-										}
-									/>
+												// Convert value based on type
+												if (criterion.type === "number" && e.target.value) {
+													newValue = Number(e.target.value);
+												} else if (criterion.type === "boolean") {
+													newValue = e.target.value === "true";
+												}
+
+												newCriteria[index] = {
+													...newCriteria[index],
+													value: newValue,
+												};
+												updateSettings("criteria", newCriteria);
+											}}
+											placeholder={
+												criterion.type === "date"
+													? "Select date"
+													: criterion.type === "number"
+													? "Enter numeric value"
+													: "Enter comparison value"
+											}
+											InputLabelProps={
+												criterion.type === "date" ? { shrink: true } : undefined
+											}
+										/>
+									</FormControl>
 								)}
 							</Box>
 						))}
@@ -2012,16 +2521,15 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 			</Box>
 
 			<NodeInfoCard className="transcript-bg">
-				<Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-					<NodeColorIndicator
-						bgcolor={String(selectedNode.data?.color) || "#94a3b8"}
-					/>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+					{getNodeIcon(String(selectedNode.type))}
 					<Typography variant="subtitle2">
 						{String(selectedNode.type) || "Unknown Node"}
 					</Typography>
 				</Box>
 				<Typography variant="caption" color="text.secondary">
-					{String(selectedNode.data?.description) || "No description available"}
+					{nodeTypeMap[String(selectedNode.type)]?.description ||
+						"No description available"}
 				</Typography>
 			</NodeInfoCard>
 
@@ -2063,7 +2571,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 							)
 						}
 						onClick={handleSaveChanges}
-						disabled={!hasChanges || isSaving || !validateSettings()}
+						disabled={!hasChanges || isSaving}
 					>
 						{isSaving ? "Saving..." : "Save Changes"}
 					</Button>

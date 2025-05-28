@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import getObjectId from "../utils/getObjectId.js";
 import Producer from "../config/rabbitMQ.js";
 import Flow from "../models/flow.js";
+import config from "../config/environment.js";
 
 export const checkFlowExists = async (flowId, userId) => {
     try {
@@ -285,6 +286,63 @@ export const getFacebookLeadFlow = async (pageId, formId) => {
             return null;
         }
         return flow ? flow : null;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const optimizePrompt = async (prompt) => {
+    try {
+        // Create the API request to OpenAI for prompt optimization
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${config.openaiApiKey}`,
+            },
+            body: JSON.stringify({
+                model: "gpt-4",
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a business copywriting expert specializing in creating clear, 
+                            comprehensive business descriptions that contain all necessary 
+                            information for lead qualification. Focus on making business prompts detailed, 
+                            specific, and informative without explicitly listing qualification criteria.`,
+                    },
+                    {
+                        role: "user",
+                        content: `Optimize this business prompt with more detail and clarity. 
+        Include:
+        - Core services/products offered
+        - Target customer profile and ideal clients
+        - Problems you solve and value proposition
+        - Budget ranges and decision-maker types
+        - What makes prospects a good fit
+
+        CURRENT BUSINESS PROMPT:
+        ${JSON.stringify(prompt)}
+
+        Provide an enhanced business description that contains rich detail for automated qualification analysis, 
+        without explicitly listing criteria. Make it comprehensive, briefly and informative. From 100 to 200 words`,
+                    },
+                ],
+                temperature: 0.3,
+                max_tokens: 600,
+                top_p: 1,
+                frequency_penalty: 0,
+                presence_penalty: 0,
+            }),
+        });
+
+        const result = await response.json();
+        if (result.error) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, result.error.message);
+        }
+
+        // Extract the optimized prompt from the response
+        const optimizedPrompt = result.choices[0].message.content;
+        return { optimizedPrompt: optimizedPrompt };
     } catch (error) {
         throw error;
     }

@@ -234,9 +234,9 @@ export const getTranscript = async (data) => {
                 await flow.save();
             }
             lead.isVerified.status = analysisResult.pass ? 2 : 1;
-            lead.isVerified.message = analysisResult.message;
+            lead.isVerified.message = analysisResult.decision_summary;
             lead.error = {
-                status: analysisResult?.pass ? false : lead.error.status,
+                status: false,
             };
             lead.markModified("leadData");
             let test = await lead.save();
