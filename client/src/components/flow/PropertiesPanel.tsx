@@ -1756,16 +1756,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
 									Start Work Day *
 								</Typography>
-								<Tooltip
-									title={propertyTooltips.startWorkDay}
-									arrow
-									placement="right"
-									enterDelay={300}
-								>
-									<IconButton size="small" sx={{ ml: 0.5 }}>
-										<HelpOutline fontSize="small" color="primary" />
-									</IconButton>
-								</Tooltip>
 							</Box>
 							<Select
 								value={
@@ -1790,16 +1780,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
 									End Work Day *
 								</Typography>
-								<Tooltip
-									title={propertyTooltips.endWorkDay}
-									arrow
-									placement="right"
-									enterDelay={300}
-								>
-									<IconButton size="small" sx={{ ml: 0.5 }}>
-										<HelpOutline fontSize="small" color="primary" />
-									</IconButton>
-								</Tooltip>
 							</Box>
 							<Select
 								value={
@@ -1841,16 +1821,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									<Typography variant="body2" sx={{ fontWeight: 500 }}>
 										Start Time *
 									</Typography>
-									<Tooltip
-										title={propertyTooltips.startTime}
-										arrow
-										placement="right"
-										enterDelay={300}
-									>
-										<IconButton size="small" sx={{ ml: 0.5 }}>
-											<HelpOutline fontSize="small" color="primary" />
-										</IconButton>
-									</Tooltip>
 								</Box>
 								<TextField
 									fullWidth
@@ -1868,16 +1838,6 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 									<Typography variant="body2" sx={{ fontWeight: 500 }}>
 										End Time *
 									</Typography>
-									<Tooltip
-										title={propertyTooltips.endTime}
-										arrow
-										placement="right"
-										enterDelay={300}
-									>
-										<IconButton size="small" sx={{ ml: 0.5 }}>
-											<HelpOutline fontSize="small" color="primary" />
-										</IconButton>
-									</Tooltip>
 								</Box>
 								<TextField
 									fullWidth
