@@ -40,7 +40,7 @@ def get_sheet_lead(self, message):
         service = build('sheets', 'v4', credentials=credentials, cache_discovery=False)
         socket.setdefaulttimeout(30)  # 30 seconds timeout
 
-        leads = process_sheet(extract_sheet_id(sheet.get("sheetUrl", "")), service)
+        leads = process_sheet(extract_sheet_id(sheet.get("sheetUrl", "")), sheet.get("sheetName", "Sheet1"), service)
         refresh_tokens_if_needed(credentials, tokens, sheet, sheet["connection"])
 
         ids = add_leads(leads, sheet["userId"], sheet["flowId"], sheet["nodeId"])
@@ -67,9 +67,9 @@ def get_sheet_lead(self, message):
         raise
 
 
-def process_sheet(sheet_id, service):
+def process_sheet(sheet_id, sheet_name, service):
     """Process a specific sheet to get new leads."""
-    range_name = 'Sheet1!A1:Z1000'  # Specify both start and end cells
+    range_name = f'{sheet_name}!A1:Z1000'  # Specify both start and end cells
     try:
         data = get_sheet_data(sheet_id, range_name, service)
         # Extract new rows
