@@ -41,7 +41,8 @@ def get_sheets(self):
                     "connection": sheet["connection"],
                     "userId": str(sheet["userId"]),
                     "flowId": str(sheet["flowId"]),
-                    "nodeId": str(sheet["nodeId"])
+                    "nodeId": str(sheet["nodeId"]),
+                    "sheetName": sheet.get("sheetName")
                 }
             )
         return {'status': True, 'data': f"Dispatched {len(requiredSheet)} sheets to worker."}
@@ -62,10 +63,12 @@ def get_required_sheets():
         for node in nodes:
             if node["type"] == "getSheetLead":
                 settings = node["data"]["settings"]
+                sheetName = settings.get("sheetName", "Sheet1")
                 sheetUrl = settings.get("sheetUrl")
                 connection = settings.get("connection")
                 if sheetUrl and connection:
                     requiredSheets.append(
                         {"sheetUrl": sheetUrl, "connection": connection,
-                         "userId": flow["userId"], "flowId": flow["_id"], "nodeId": node["id"]})
+                         "userId": flow["userId"], "flowId": flow["_id"], "nodeId": node["id"],
+                         "sheetName": sheetName})
     return requiredSheets
