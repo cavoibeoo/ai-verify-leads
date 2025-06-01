@@ -8,11 +8,12 @@ if not exist venv (
     python -m venv venv
 )
 
-echo Install required packages
-pip install -r requirements.txt
-
 echo Activating virtual environment...
 call venv\Scripts\activate
+
+
+echo Install required packages
+pip install -r requirements.txt
 
 echo.
 echo Multi-agents online at http://localhost:5000
