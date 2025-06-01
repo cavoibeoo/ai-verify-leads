@@ -25,6 +25,7 @@ app.conf.update(
         'tasks.googleCalendar': {'queue': 'googleCalendar.consumer'},
         'tasks.getSheets': {'queue': 'getSheets.consumer'},
         'tasks.getSheetLead': {'queue': 'getSheetLead.consumer'},
+        'tasks.exportSheetLead': {'queue': 'exportSheetLead.consumer'},
     },
     broker_connection_timeout=10,
     broker_heartbeat=10  # Adjust heartbeat interval
@@ -46,6 +47,7 @@ def _import_tasks():
     import tasks.google_calendar
     import tasks.get_sheet_lead
     import tasks.get_sheets
+    import tasks.export_sheet_lead
 
 
 _import_tasks()
