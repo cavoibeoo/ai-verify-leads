@@ -1,9 +1,15 @@
 from celery import Celery
 from config import Config
+import ssl
+import certifi
 
 app = Celery(
     "lead_verifier",
     broker=Config.RABBITMQ_URL,  # Use RabbitMQ as the broker
+    broker_use_ssl={
+        'ca_certs': certifi.where(),
+        'cert_reqs': ssl.CERT_REQUIRED
+    }
 )
 
 app.conf.update(
