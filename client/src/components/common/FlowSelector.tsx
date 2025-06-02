@@ -57,7 +57,7 @@ const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
 	"&.Mui-selected": {
 		backgroundColor: theme.palette.primary.light,
 		"&:hover": {
-			backgroundColor: theme.palette.primary.light,
+			backgroundColor: "#bdbcf7",
 		},
 	},
 }));
