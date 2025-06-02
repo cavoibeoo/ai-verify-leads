@@ -151,6 +151,8 @@ const getNodeTypeFromId = (nodeId: string): string => {
 	if (basePart.includes("delay") || basePart.includes("config"))
 		return "config";
 	if (basePart.includes("condition")) return "condition";
+	if (basePart.includes("importsheetlead")) return "importSheetLead";
+	if (basePart.includes("exportsheetlead")) return "exportSheetLead";
 
 	// If we get here, log the unknown type
 	console.log("Unknown node type for nodeId:", nodeId);
@@ -178,6 +180,10 @@ const getNodeColorFromType = (nodeType: string): string => {
 			return "#10b981";
 		case "config":
 			return "#795548";
+		case "importSheetLead":
+			return "#16a34a";
+		case "exportSheetLead":
+			return "#16a34a";
 		default:
 			return "#9E9E9E";
 	}
