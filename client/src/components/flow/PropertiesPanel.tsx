@@ -69,6 +69,7 @@ type PropertiesPanelProps = {
 
 interface NodeSettings {
 	sheetUrl?: string;
+	sheetName?: string;
 	excelUrl?: string;
 	adAccountId?: string;
 	campaignId?: string;
@@ -981,6 +982,8 @@ const propertyTooltips = {
 		"Select or connect your Google account to access Google Sheets.",
 	sheetUrl:
 		"Paste the full URL of the Google Sheet to import/export leads. Example: 'https://docs.google.com/spreadsheets/d/...'",
+	sheetName:
+		"Name of the sheet/tab in the Google Sheet to use. Example: 'Leads2024'",
 	// Webhook tooltips:
 	webhookUrl:
 		"The endpoint where lead data will be sent. Must start with http(s)://. Example: 'https://yourdomain.com/webhook'",
@@ -1281,7 +1284,11 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 				);
 			case "getSheetLead":
 			case "exportSheetLead":
-				return !!localSettings.connection && !!localSettings.sheetUrl;
+				return (
+					!!localSettings.connection &&
+					!!localSettings.sheetUrl &&
+					!!localSettings.sheetName
+				);
 			default:
 				return true;
 		}
@@ -2115,6 +2122,31 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								required
 							/>
 						</FormControl>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Sheet Name *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetName}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.sheetName || ""}
+								onChange={handleTextChange("sheetName")}
+								placeholder="Enter Sheet Name (tab name)"
+								required
+							/>
+						</FormControl>
 					</>
 				);
 
@@ -2165,6 +2197,31 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 								value={localSettings.sheetUrl || ""}
 								onChange={handleTextChange("sheetUrl")}
 								placeholder="Enter Google Sheet URL"
+								required
+							/>
+						</FormControl>
+						<FormControl fullWidth margin="normal" size="small">
+							<Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Sheet Name *
+								</Typography>
+								<Tooltip
+									title={propertyTooltips.sheetName}
+									arrow
+									placement="right"
+									enterDelay={300}
+								>
+									<IconButton size="small" sx={{ ml: 0.5 }}>
+										<HelpOutline fontSize="small" color="primary" />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								value={localSettings.sheetName || ""}
+								onChange={handleTextChange("sheetName")}
+								placeholder="Enter Sheet Name (tab name)"
 								required
 							/>
 						</FormControl>

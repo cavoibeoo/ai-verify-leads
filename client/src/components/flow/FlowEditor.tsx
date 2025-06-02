@@ -450,12 +450,14 @@ const FlowEditorContent: React.FC<FlowEditorProps> = ({ flowId }) => {
 						case "getSheetLead":
 							defaultSettings = {
 								sheetUrl: "",
+								sheetName: "",
 								connection: "",
 							};
 							break;
 						case "exportSheetLead":
 							defaultSettings = {
 								sheetUrl: "",
+								sheetName: "",
 								connection: "",
 							};
 							break;
